@@ -3,11 +3,10 @@
 import React, { useMemo, useState } from "react";
 import {
   FiTrendingUp, FiTrendingDown, FiActivity, FiX, FiCheckCircle, FiXCircle, FiMaximize2,
-  FiTarget, FiDollarSign, FiPieChart, FiBarChart2, FiClock, FiZap, FiAlertTriangle,
+  FiTarget, FiDollarSign, FiBarChart2, FiZap, FiAlertTriangle,
   FiGlobe, FiAward, FiList, FiSliders, FiPercent, FiFileText, FiLink, FiSmartphone,
-  FiMonitor, FiShield, FiArrowUp, FiArrowDown, FiRefreshCw
+  FiShield, FiArrowUp, FiArrowDown, FiRefreshCw
 } from "react-icons/fi";
-import EquityCurve from "./EquityCurve";
 import PnLCalendar from "./PnLCalendar";
 
 // Seeded random number generator for consistent SSR/client rendering
@@ -16,32 +15,6 @@ const seededRandom = (seed: number) => {
   return x - Math.floor(x);
 };
 
-// Generate sample equity curve data with seed
-const generateEquityData = (seed: number) => {
-  const data = [];
-  let equity = 50000;
-  const startDate = new Date("2025-01-01");
-  let seedVal = seed;
-
-  for (let i = 0; i < 60; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-
-    const dayOfWeek = date.getDay();
-    if (dayOfWeek === 0 || dayOfWeek === 6) continue;
-
-    const pnl = Math.round((seededRandom(seedVal++) - 0.35) * 1200);
-    equity += pnl;
-    equity = Math.max(equity, 45000);
-
-    data.push({
-      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-      equity,
-      pnl,
-    });
-  }
-  return data;
-};
 
 // Generate calendar data for current month with seed
 const generateCalendarData = (seed: number) => {
@@ -145,7 +118,6 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
   const totalPnL = currentBalance - 50000;
   const totalTrades = 127;
   const winRate = 68.5;
-  const todayPnL = 342;
 
   // Calculate calendar totals
   const calendarTotals = useMemo(() => {
@@ -1144,7 +1116,7 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
           </div>
 
           <div className="space-y-2 relative">
-            {sampleTrades.slice(0, 4).map((trade, idx) => (
+            {sampleTrades.slice(0, 4).map((trade) => (
               <div key={trade.id} className="flex items-center justify-between p-3 bg-gradient-to-r from-[#111]/80 to-transparent backdrop-blur-sm rounded-xl border border-transparent hover:border-[#FFD700]/20 transition-all duration-300 hover:bg-[#FFD700]/5 hover:translate-x-1 cursor-pointer group">
                 <div className="flex items-center gap-3">
                   {/* Animated indicator */}
