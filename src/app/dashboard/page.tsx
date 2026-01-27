@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata: Metadata = {
   title: "Trader Dashboard | Pipzen",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return <DashboardLayout />;
+  return (
+    <ThemeProvider>
+      <DashboardLayout />
+    </ThemeProvider>
+  );
 }

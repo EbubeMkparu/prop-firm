@@ -62,9 +62,24 @@ const symbolStats = [
 
 interface DashboardContentProps {
   activeTab?: string;
+  isDark?: boolean;
 }
 
-export default function DashboardContent({ activeTab = "overview" }: DashboardContentProps) {
+export default function DashboardContent({ activeTab = "overview", isDark = true }: DashboardContentProps) {
+  // Theme-aware colors
+  const colors = {
+    bg: isDark ? "bg-[#0d0d0d]" : "bg-white",
+    bgCard: isDark ? "bg-gradient-to-br from-[#0d0d0d] to-[#111]" : "bg-gradient-to-br from-white to-gray-50",
+    bgSecondary: isDark ? "bg-[#111]" : "bg-gray-50",
+    text: isDark ? "text-white" : "text-gray-900",
+    textSecondary: isDark ? "text-gray-400" : "text-gray-600",
+    textMuted: isDark ? "text-gray-500" : "text-gray-400",
+    border: isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/40",
+    borderLight: isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20",
+    gradientText: isDark ? "from-white to-gray-400" : "from-gray-900 to-gray-600",
+    hoverBg: isDark ? "hover:bg-[#FFD700]/5" : "hover:bg-[#FFD700]/10",
+  };
+
   // Use fixed seeds for consistent SSR/client rendering
   const calendarData = useMemo(() => generateCalendarData(67890), []);
   const [selectedDay, setSelectedDay] = useState<{ date: string; pnl: number; trades: number } | null>(null);
@@ -347,7 +362,7 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
   return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Challenge Status Banner - Glassmorphism */}
-      <div className="bg-[#0a0a0a]/60 backdrop-blur-xl rounded-2xl border border-[#FFD700]/20 p-5 relative overflow-hidden hover:border-[#FFD700]/40 transition-all duration-500 group">
+      <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${colors.border} p-5 relative overflow-hidden hover:border-[#FFD700]/40 transition-all duration-500 group`}>
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#FFD700]/10 rounded-full blur-3xl group-hover:bg-[#FFD700]/15 transition-all duration-500" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#FFD700]/5 rounded-full blur-2xl" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700]/5 via-transparent to-[#FFD700]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -366,48 +381,48 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
             </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-lg">
               <span className="text-green-400">Trading Days:</span>
-              <span className="text-white font-bold text-lg">{challengeData.daysActive}</span>
+              <span className={`${colors.text} font-bold text-lg`}>{challengeData.daysActive}</span>
             </div>
           </div>
 
           {/* Progress Bars Grid */}
           <div className="grid md:grid-cols-3 gap-4">
             {/* Profit Target */}
-            <div className="bg-[#0a0a0a]/50 backdrop-blur-sm rounded-xl p-4 border border-[#FFD700]/10 hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]">
+            <div className={`${isDark ? "bg-[#0a0a0a]/50" : "bg-gray-50/80"} backdrop-blur-sm rounded-xl p-4 border ${colors.borderLight} hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-400 text-sm">Profit Target</span>
+                <span className={`${colors.textSecondary} text-sm`}>Profit Target</span>
                 <span className="text-[#FFD700] text-xs font-semibold">{challengeData.profitTarget}% target</span>
               </div>
               <div className="flex items-end justify-between mb-2">
-                <span className="text-2xl font-bold text-white">{challengeData.currentProfitPercent.toFixed(1)}%</span>
+                <span className={`text-2xl font-bold ${colors.text}`}>{challengeData.currentProfitPercent.toFixed(1)}%</span>
                 <span className="text-green-500 text-sm">+${challengeData.currentProfit.toLocaleString()}</span>
               </div>
-              <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+              <div className={`h-2 ${isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} rounded-full overflow-hidden`}>
                 <div
                   className="h-full bg-gradient-to-r from-green-500 to-[#FFD700] rounded-full transition-all duration-500"
                   style={{ width: `${Math.min((challengeData.currentProfitPercent / challengeData.profitTarget) * 100, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className={`text-xs ${colors.textMuted} mt-2`}>
                 ${(challengeData.profitTargetAmount - challengeData.currentProfit).toLocaleString()} to target
               </p>
             </div>
 
             {/* Max Drawdown */}
-            <div className="bg-[#0a0a0a]/50 backdrop-blur-sm rounded-xl p-4 border border-[#FFD700]/10 hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]">
+            <div className={`${isDark ? "bg-[#0a0a0a]/50" : "bg-gray-50/80"} backdrop-blur-sm rounded-xl p-4 border ${colors.borderLight} hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-400 text-sm">Max Drawdown</span>
+                <span className={`${colors.textSecondary} text-sm`}>Max Drawdown</span>
                 <span className={`text-xs font-semibold ${challengeData.currentDrawdown > 7 ? "text-red-500" : challengeData.currentDrawdown > 5 ? "text-orange-500" : "text-green-500"}`}>
                   {challengeData.maxDrawdown}% limit
                 </span>
               </div>
               <div className="flex items-end justify-between mb-2">
-                <span className="text-2xl font-bold text-white">{challengeData.currentDrawdown}%</span>
+                <span className={`text-2xl font-bold ${colors.text}`}>{challengeData.currentDrawdown}%</span>
                 <span className={`text-sm ${challengeData.currentDrawdown > 7 ? "text-red-500" : "text-green-500"}`}>
                   {(challengeData.maxDrawdown - challengeData.currentDrawdown).toFixed(1)}% remaining
                 </span>
               </div>
-              <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+              <div className={`h-2 ${isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} rounded-full overflow-hidden`}>
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     challengeData.currentDrawdown > 7 ? "bg-red-500" :
@@ -416,26 +431,26 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
                   style={{ width: `${(challengeData.currentDrawdown / challengeData.maxDrawdown) * 100}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className={`text-xs ${colors.textMuted} mt-2`}>
                 ${(challengeData.maxDrawdownAmount * (1 - challengeData.currentDrawdown / challengeData.maxDrawdown)).toLocaleString()} buffer left
               </p>
             </div>
 
             {/* Daily Loss Limit */}
-            <div className="bg-[#0a0a0a]/50 backdrop-blur-sm rounded-xl p-4 border border-[#FFD700]/10 hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]">
+            <div className={`${isDark ? "bg-[#0a0a0a]/50" : "bg-gray-50/80"} backdrop-blur-sm rounded-xl p-4 border ${colors.borderLight} hover:border-[#FFD700]/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-gray-400 text-sm">Daily Loss Limit</span>
+                <span className={`${colors.textSecondary} text-sm`}>Daily Loss Limit</span>
                 <span className={`text-xs font-semibold ${challengeData.currentDailyLoss > 3 ? "text-red-500" : "text-green-500"}`}>
                   {challengeData.dailyLossLimit}% limit
                 </span>
               </div>
               <div className="flex items-end justify-between mb-2">
-                <span className="text-2xl font-bold text-white">{challengeData.currentDailyLoss}%</span>
+                <span className={`text-2xl font-bold ${colors.text}`}>{challengeData.currentDailyLoss}%</span>
                 <span className="text-green-500 text-sm">
                   {(challengeData.dailyLossLimit - challengeData.currentDailyLoss).toFixed(1)}% remaining
                 </span>
               </div>
-              <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+              <div className={`h-2 ${isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} rounded-full overflow-hidden`}>
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     challengeData.currentDailyLoss > 3 ? "bg-red-500" : "bg-green-500"
@@ -443,7 +458,7 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
                   style={{ width: `${(challengeData.currentDailyLoss / challengeData.dailyLossLimit) * 100}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className={`text-xs ${colors.textMuted} mt-2`}>
                 ${(challengeData.dailyLossAmount * (1 - challengeData.currentDailyLoss / challengeData.dailyLossLimit)).toLocaleString()} can risk today
               </p>
             </div>
@@ -456,7 +471,7 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
         {/* Multi-line Performance Chart - EXPANDED */}
         <div
           onClick={() => setExpandedCard("equity")}
-          className="lg:col-span-2 bg-gradient-to-br from-[#0a0a0a]/80 to-[#111]/60 backdrop-blur-xl rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.15)] group relative overflow-hidden cursor-pointer"
+          className={`lg:col-span-2 ${isDark ? "bg-gradient-to-br from-[#0a0a0a]/80 to-[#111]/60" : "bg-gradient-to-br from-white/90 to-gray-50/80"} backdrop-blur-xl rounded-2xl border ${colors.border} p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.15)] group relative overflow-hidden cursor-pointer`}
         >
           {/* Animated glow */}
           <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FFD700]/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -467,13 +482,13 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
             <div className="flex items-center gap-3">
               <FiTrendingUp className="text-green-400" size={24} style={{ filter: "drop-shadow(0 0 6px #22c55e)" }} />
               <div>
-                <p className="text-white font-semibold">EQUITY CURVE</p>
-                <p className="text-xs text-gray-500">Click to expand full view</p>
+                <p className={`${colors.text} font-semibold`}>EQUITY CURVE</p>
+                <p className={`text-xs ${colors.textMuted}`}>Click to expand full view</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <p className="text-[#FFD700] font-bold text-2xl">${currentBalance.toLocaleString()}</p>
-              <FiMaximize2 className="text-gray-500 group-hover:text-[#FFD700] transition-colors" size={18} />
+              <FiMaximize2 className={`${colors.textMuted} group-hover:text-[#FFD700] transition-colors`} size={18} />
             </div>
           </div>
 
@@ -482,24 +497,24 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
             <div className="flex items-center gap-2 px-3 py-2 bg-[#FFD700]/10 rounded-lg border border-[#FFD700]/30 shadow-[0_0_10px_rgba(255,215,0,0.1)]">
               <div className="w-3 h-3 bg-[#FFD700] rounded-full shadow-[0_0_8px_#FFD700]" />
               <span className="text-[#FFD700] font-medium">Equity</span>
-              <span className="text-white font-bold text-sm">${(currentBalance/1000).toFixed(1)}K</span>
+              <span className={`${colors.text} font-bold text-sm`}>${(currentBalance/1000).toFixed(1)}K</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 rounded-lg border border-green-500/30">
               <div className="w-3 h-3 bg-green-500 rounded-full shadow-[0_0_8px_#22c55e]" />
               <span className="text-green-400 font-medium">Target</span>
-              <span className="text-white font-bold text-sm">$55K</span>
+              <span className={`${colors.text} font-bold text-sm`}>$55K</span>
               <span className="text-green-400 text-[10px]">(+10%)</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 bg-red-500/10 rounded-lg border border-red-500/30">
               <div className="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_8px_#ef4444]" />
               <span className="text-red-400 font-medium">DD Limit</span>
-              <span className="text-white font-bold text-sm">$45K</span>
+              <span className={`${colors.text} font-bold text-sm`}>$45K</span>
               <span className="text-red-400 text-[10px]">(-10%)</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 rounded-lg border border-blue-500/30">
               <div className="w-3 h-3 bg-blue-500 rounded-full" />
               <span className="text-blue-400 font-medium">Daily DD</span>
-              <span className="text-white font-bold text-sm">$47.5K</span>
+              <span className={`${colors.text} font-bold text-sm`}>$47.5K</span>
               <span className="text-blue-400 text-[10px]">(-5%)</span>
             </div>
           </div>
@@ -512,11 +527,11 @@ export default function DashboardContent({ activeTab = "overview" }: DashboardCo
           >
             <svg className="w-full h-full" viewBox="0 0 300 120" preserveAspectRatio="none">
               {/* Grid lines */}
-              <line x1="0" y1="20" x2="300" y2="20" stroke="#1a1a1a" strokeWidth="0.5" />
-              <line x1="0" y1="40" x2="300" y2="40" stroke="#1a1a1a" strokeWidth="0.5" />
-              <line x1="0" y1="60" x2="300" y2="60" stroke="#1a1a1a" strokeWidth="0.5" />
-              <line x1="0" y1="80" x2="300" y2="80" stroke="#1a1a1a" strokeWidth="0.5" />
-              <line x1="0" y1="100" x2="300" y2="100" stroke="#1a1a1a" strokeWidth="0.5" />
+              <line x1="0" y1="20" x2="300" y2="20" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="0.5" />
+              <line x1="0" y1="40" x2="300" y2="40" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="0.5" />
+              <line x1="0" y1="60" x2="300" y2="60" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="0.5" />
+              <line x1="0" y1="80" x2="300" y2="80" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="0.5" />
+              <line x1="0" y1="100" x2="300" y2="100" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="0.5" />
               {/* Target line - Green with label */}
               <line x1="0" y1="15" x2="300" y2="15" stroke="#22c55e" strokeWidth="2" strokeDasharray="8,4" />
               <text x="305" y="18" fill="#22c55e" fontSize="8" fontWeight="bold">TARGET</text>
