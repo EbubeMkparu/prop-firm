@@ -169,11 +169,11 @@ export default function DashboardLayout() {
             ))}
           </div>
 
-          {/* EARNINGS Section */}
+          {/* ECOSYSTEM Section */}
           <div className="mt-6">
             {!sidebarCollapsed && (
               <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2">
-                EARNINGS
+                ECOSYSTEM
               </p>
             )}
             <div className="space-y-1">
@@ -353,7 +353,7 @@ export default function DashboardLayout() {
               <span className="text-sm font-medium">{item.label}</span>
             </button>
           ))}
-          <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2 mt-4">EARNINGS</p>
+          <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2 mt-4">ECOSYSTEM</p>
           <Link
             href="/ecosystem"
             onClick={() => setSidebarOpen(false)}
