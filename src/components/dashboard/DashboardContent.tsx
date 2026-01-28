@@ -4,7 +4,7 @@ import React, { useMemo, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import {
   FiTrendingUp, FiTrendingDown, FiActivity, FiX, FiCheckCircle, FiXCircle, FiMaximize2,
-  FiTarget, FiDollarSign, FiBarChart2, FiZap, FiAlertTriangle,
+  FiTarget, FiDollarSign, FiBarChart2, FiZap, FiAlertTriangle, FiLayers,
   FiGlobe, FiAward, FiList, FiSliders, FiPercent, FiFileText, FiLink, FiSmartphone,
   FiShield, FiArrowUp, FiArrowDown, FiRefreshCw, FiUsers, FiChevronDown, FiBell, FiMessageSquare, FiUser,
   FiMoreHorizontal, FiPlus, FiHelpCircle, FiDownload, FiCreditCard
@@ -19,6 +19,9 @@ const seededRandom = (seed: number) => {
 
 
 // Generate calendar data for current month with seed
+const tradeSymbols = ["EUR/USD", "GBP/JPY", "XAU/USD", "USD/JPY", "BTC/USD", "GBP/USD", "AUD/USD", "EUR/GBP"];
+const tradeTypes = ["LONG", "SHORT"] as const;
+
 const generateCalendarData = (seed: number) => {
   const data = [];
   const now = new Date();
@@ -33,11 +36,29 @@ const generateCalendarData = (seed: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
     if (dayOfWeek === 0 || dayOfWeek === 6 || date > now) {
-      data.push({ date: dateStr, pnl: 0, trades: 0 });
+      data.push({ date: dateStr, pnl: 0, trades: 0, rValue: 0, winRate: 50, tradeList: [] as { symbol: string; type: "LONG" | "SHORT"; pnl: number; size: number; duration: string }[] });
     } else {
-      const trades = Math.floor(seededRandom(seedVal++) * 6) + 1;
-      const pnl = Math.round((seededRandom(seedVal++) - 0.35) * 800);
-      data.push({ date: dateStr, pnl, trades });
+      const tradeCount = Math.floor(seededRandom(seedVal++) * 6) + 1;
+      const tradeList: { symbol: string; type: "LONG" | "SHORT"; pnl: number; size: number; duration: string }[] = [];
+      let totalPnl = 0;
+      let wins = 0;
+
+      for (let t = 0; t < tradeCount; t++) {
+        const symbol = tradeSymbols[Math.floor(seededRandom(seedVal++) * tradeSymbols.length)];
+        const type = tradeTypes[Math.floor(seededRandom(seedVal++) * 2)];
+        const tradePnl = Math.round((seededRandom(seedVal++) - 0.4) * 500);
+        const size = parseFloat((seededRandom(seedVal++) * 3 + 0.1).toFixed(2));
+        const hours = Math.floor(seededRandom(seedVal++) * 8) + 1;
+        const mins = Math.floor(seededRandom(seedVal++) * 59);
+        const duration = `${hours}h ${mins}m`;
+        totalPnl += tradePnl;
+        if (tradePnl > 0) wins++;
+        tradeList.push({ symbol, type, pnl: tradePnl, size, duration });
+      }
+
+      const rValue = parseFloat((seededRandom(seedVal++) * 2).toFixed(2));
+      const winRate = tradeCount > 0 ? Math.round((wins / tradeCount) * 100) : 50;
+      data.push({ date: dateStr, pnl: totalPnl, trades: tradeCount, rValue, winRate, tradeList });
     }
   }
   return data;
@@ -97,6 +118,9 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
   const [ticketSubject, setTicketSubject] = useState("");
   const [ticketMessage, setTicketMessage] = useState("");
   const [ticketCategory, setTicketCategory] = useState("general");
+
+  // Challenge type state
+  const [challengeType, setChallengeType] = useState<"2-step" | "1-step" | "instant">("2-step");
 
   // Equity curve data points for smooth interpolation (daily data over 30 days)
   const equityData = useMemo(() => {
@@ -483,7 +507,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-3 gap-3 pt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                     <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-3 text-center`}>
                       <p className={`text-lg font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{account.winRate}%</p>
                       <p className={`text-[10px] ${isDark ? "text-gray-500" : "text-gray-400"} uppercase`}>Win Rate</p>
@@ -634,129 +658,35 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
   }
 
   if (activeTab === "challenges") {
-    // Challenge data
-    const challenges = [
-      {
-        size: "$5,000",
-        price: 49,
-        originalPrice: 79,
-        popular: false,
-        phase1Target: 8,
-        phase2Target: 5,
-        maxDrawdown: 10,
-        dailyLoss: 5,
-        minDays: 5,
-        maxDays: "Unlimited",
-        leverage: "1:100",
-        profitSplit: 80,
-        scaling: true,
-        newsTrading: true,
-        weekendHolding: true,
-        eaAllowed: true,
-        resetDiscount: 20,
-        passRate: 32,
-      },
-      {
-        size: "$10,000",
-        price: 89,
-        originalPrice: 129,
-        popular: false,
-        phase1Target: 8,
-        phase2Target: 5,
-        maxDrawdown: 10,
-        dailyLoss: 5,
-        minDays: 5,
-        maxDays: "Unlimited",
-        leverage: "1:100",
-        profitSplit: 80,
-        scaling: true,
-        newsTrading: true,
-        weekendHolding: true,
-        eaAllowed: true,
-        resetDiscount: 20,
-        passRate: 35,
-      },
-      {
-        size: "$25,000",
-        price: 189,
-        originalPrice: 279,
-        popular: false,
-        phase1Target: 8,
-        phase2Target: 5,
-        maxDrawdown: 10,
-        dailyLoss: 5,
-        minDays: 5,
-        maxDays: "Unlimited",
-        leverage: "1:100",
-        profitSplit: 80,
-        scaling: true,
-        newsTrading: true,
-        weekendHolding: true,
-        eaAllowed: true,
-        resetDiscount: 20,
-        passRate: 38,
-      },
-      {
-        size: "$50,000",
-        price: 299,
-        originalPrice: 449,
-        popular: true,
-        phase1Target: 8,
-        phase2Target: 5,
-        maxDrawdown: 10,
-        dailyLoss: 5,
-        minDays: 5,
-        maxDays: "Unlimited",
-        leverage: "1:100",
-        profitSplit: 85,
-        scaling: true,
-        newsTrading: true,
-        weekendHolding: true,
-        eaAllowed: true,
-        resetDiscount: 25,
-        passRate: 41,
-      },
-      {
-        size: "$100,000",
-        price: 499,
-        originalPrice: 749,
-        popular: true,
-        phase1Target: 8,
-        phase2Target: 5,
-        maxDrawdown: 10,
-        dailyLoss: 5,
-        minDays: 5,
-        maxDays: "Unlimited",
-        leverage: "1:100",
-        profitSplit: 85,
-        scaling: true,
-        newsTrading: true,
-        weekendHolding: true,
-        eaAllowed: true,
-        resetDiscount: 25,
-        passRate: 44,
-      },
-      {
-        size: "$200,000",
-        price: 899,
-        originalPrice: 1299,
-        popular: false,
-        phase1Target: 8,
-        phase2Target: 5,
-        maxDrawdown: 10,
-        dailyLoss: 5,
-        minDays: 5,
-        maxDays: "Unlimited",
-        leverage: "1:100",
-        profitSplit: 90,
-        scaling: true,
-        newsTrading: true,
-        weekendHolding: true,
-        eaAllowed: true,
-        resetDiscount: 30,
-        passRate: 47,
-      },
-    ];
+    // Challenge data for different types
+    const challengesByType = {
+      "2-step": [
+        { size: "$5,000", price: 49, originalPrice: 79, popular: false, phase1Target: 8, phase2Target: 5, maxDrawdown: 10, dailyLoss: 5, minDays: 5, maxDays: "Unlimited", leverage: "1:100", profitSplit: 80, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 20, passRate: 32, type: "2-step" as const },
+        { size: "$10,000", price: 89, originalPrice: 129, popular: false, phase1Target: 8, phase2Target: 5, maxDrawdown: 10, dailyLoss: 5, minDays: 5, maxDays: "Unlimited", leverage: "1:100", profitSplit: 80, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 20, passRate: 35, type: "2-step" as const },
+        { size: "$25,000", price: 189, originalPrice: 279, popular: false, phase1Target: 8, phase2Target: 5, maxDrawdown: 10, dailyLoss: 5, minDays: 5, maxDays: "Unlimited", leverage: "1:100", profitSplit: 80, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 20, passRate: 38, type: "2-step" as const },
+        { size: "$50,000", price: 299, originalPrice: 449, popular: true, phase1Target: 8, phase2Target: 5, maxDrawdown: 10, dailyLoss: 5, minDays: 5, maxDays: "Unlimited", leverage: "1:100", profitSplit: 85, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 25, passRate: 41, type: "2-step" as const },
+        { size: "$100,000", price: 499, originalPrice: 749, popular: true, phase1Target: 8, phase2Target: 5, maxDrawdown: 10, dailyLoss: 5, minDays: 5, maxDays: "Unlimited", leverage: "1:100", profitSplit: 85, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 25, passRate: 44, type: "2-step" as const },
+        { size: "$200,000", price: 899, originalPrice: 1299, popular: false, phase1Target: 8, phase2Target: 5, maxDrawdown: 10, dailyLoss: 5, minDays: 5, maxDays: "Unlimited", leverage: "1:100", profitSplit: 90, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 30, passRate: 47, type: "2-step" as const },
+      ],
+      "1-step": [
+        { size: "$5,000", price: 59, originalPrice: 99, popular: false, phase1Target: 10, phase2Target: 0, maxDrawdown: 8, dailyLoss: 4, minDays: 3, maxDays: "Unlimited", leverage: "1:100", profitSplit: 75, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 15, passRate: 28, type: "1-step" as const },
+        { size: "$10,000", price: 109, originalPrice: 159, popular: false, phase1Target: 10, phase2Target: 0, maxDrawdown: 8, dailyLoss: 4, minDays: 3, maxDays: "Unlimited", leverage: "1:100", profitSplit: 75, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 15, passRate: 31, type: "1-step" as const },
+        { size: "$25,000", price: 229, originalPrice: 329, popular: false, phase1Target: 10, phase2Target: 0, maxDrawdown: 8, dailyLoss: 4, minDays: 3, maxDays: "Unlimited", leverage: "1:100", profitSplit: 75, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 15, passRate: 34, type: "1-step" as const },
+        { size: "$50,000", price: 359, originalPrice: 529, popular: true, phase1Target: 10, phase2Target: 0, maxDrawdown: 8, dailyLoss: 4, minDays: 3, maxDays: "Unlimited", leverage: "1:100", profitSplit: 80, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 20, passRate: 37, type: "1-step" as const },
+        { size: "$100,000", price: 599, originalPrice: 899, popular: true, phase1Target: 10, phase2Target: 0, maxDrawdown: 8, dailyLoss: 4, minDays: 3, maxDays: "Unlimited", leverage: "1:100", profitSplit: 80, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 20, passRate: 40, type: "1-step" as const },
+        { size: "$200,000", price: 1099, originalPrice: 1599, popular: false, phase1Target: 10, phase2Target: 0, maxDrawdown: 8, dailyLoss: 4, minDays: 3, maxDays: "Unlimited", leverage: "1:100", profitSplit: 85, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 25, passRate: 43, type: "1-step" as const },
+      ],
+      "instant": [
+        { size: "$2,500", price: 149, originalPrice: 199, popular: false, phase1Target: 0, phase2Target: 0, maxDrawdown: 6, dailyLoss: 3, minDays: 0, maxDays: "Unlimited", leverage: "1:50", profitSplit: 60, scaling: true, newsTrading: false, weekendHolding: true, eaAllowed: true, resetDiscount: 10, passRate: 100, type: "instant" as const },
+        { size: "$5,000", price: 279, originalPrice: 399, popular: false, phase1Target: 0, phase2Target: 0, maxDrawdown: 6, dailyLoss: 3, minDays: 0, maxDays: "Unlimited", leverage: "1:50", profitSplit: 60, scaling: true, newsTrading: false, weekendHolding: true, eaAllowed: true, resetDiscount: 10, passRate: 100, type: "instant" as const },
+        { size: "$10,000", price: 499, originalPrice: 699, popular: true, phase1Target: 0, phase2Target: 0, maxDrawdown: 6, dailyLoss: 3, minDays: 0, maxDays: "Unlimited", leverage: "1:50", profitSplit: 65, scaling: true, newsTrading: false, weekendHolding: true, eaAllowed: true, resetDiscount: 15, passRate: 100, type: "instant" as const },
+        { size: "$25,000", price: 999, originalPrice: 1499, popular: true, phase1Target: 0, phase2Target: 0, maxDrawdown: 6, dailyLoss: 3, minDays: 0, maxDays: "Unlimited", leverage: "1:50", profitSplit: 70, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 15, passRate: 100, type: "instant" as const },
+        { size: "$50,000", price: 1799, originalPrice: 2499, popular: false, phase1Target: 0, phase2Target: 0, maxDrawdown: 6, dailyLoss: 3, minDays: 0, maxDays: "Unlimited", leverage: "1:50", profitSplit: 75, scaling: true, newsTrading: true, weekendHolding: true, eaAllowed: true, resetDiscount: 20, passRate: 100, type: "instant" as const },
+      ],
+    };
+
+    const challenges = challengesByType[challengeType];
+    const challengeTypeLabel = challengeType === "2-step" ? "2-Phase Challenge" : challengeType === "1-step" ? "1-Phase Challenge" : "Instant Funded";
 
     return (
       <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
@@ -781,38 +711,79 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                 <FiZap className="text-blue-500" size={16} />
                 <span className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}>Up to 90% Profit Split</span>
               </div>
-              <div className={`flex items-center gap-2 px-4 py-2 ${isDark ? "bg-purple-500/10" : "bg-purple-50"} rounded-xl border ${isDark ? "border-purple-500/20" : "border-purple-200"}`}>
-                <FiTrendingUp className="text-purple-500" size={16} />
-                <span className={`text-sm ${isDark ? "text-purple-400" : "text-purple-600"}`}>Scaling Program</span>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* How It Works */}
-        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
-          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>How It Works</h3>
-          <div className="grid md:grid-cols-4 gap-4">
+        {/* Challenge Type Selector */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white"} backdrop-blur-xl rounded-xl border ${isDark ? "border-[#FFD700]/20" : "border-gray-200"} p-3 sm:p-4`}>
+          <h3 className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-3`}>Select Challenge Type</h3>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {[
+              { id: "2-step" as const, label: "2-Step", desc: "Best for beginners", Icon: FiLayers, color: "from-blue-500 to-cyan-500" },
+              { id: "1-step" as const, label: "1-Step", desc: "Faster funding", Icon: FiTarget, color: "from-purple-500 to-pink-500" },
+              { id: "instant" as const, label: "Instant", desc: "No evaluation", Icon: FiZap, color: "from-[#FFD700] to-[#FFA500]" },
+            ].map((type) => (
+              <button
+                key={type.id}
+                onClick={() => setChallengeType(type.id)}
+                className={`relative p-2 sm:p-3 rounded-lg border transition-all duration-300 overflow-hidden group ${
+                  challengeType === type.id
+                    ? `border-[#FFD700] bg-gradient-to-br ${isDark ? "from-[#FFD700]/15 to-[#FFA500]/5" : "from-[#FFD700]/20 to-[#FFA500]/5"} shadow-[0_0_20px_rgba(255,215,0,0.15)]`
+                    : `${isDark ? "border-[#1a1a1a] hover:border-[#FFD700]/50 bg-[#0d0d0d]" : "border-gray-200 hover:border-[#FFD700]/50 bg-gray-50"}`
+                }`}
+              >
+                {challengeType === type.id && (
+                  <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-[#FFD700] flex items-center justify-center">
+                    <FiCheckCircle className="text-black" size={10} />
+                  </div>
+                )}
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg mb-1.5 flex items-center justify-center mx-auto ${challengeType === type.id ? "bg-[#FFD700]/20 border border-[#FFD700]/30" : isDark ? "bg-white/5 border border-white/10" : "bg-white border border-gray-200"}`}>
+                  <type.Icon className={challengeType === type.id ? "text-[#FFD700]" : isDark ? "text-gray-400" : "text-gray-600"} size={16} />
+                </div>
+                <p className={`text-xs sm:text-sm font-semibold ${challengeType === type.id ? "text-[#FFD700]" : isDark ? "text-white" : "text-gray-900"}`}>{type.label}</p>
+                <p className={`text-[9px] sm:text-[10px] ${isDark ? "text-gray-500" : "text-gray-500"} mt-0.5 hidden sm:block`}>{type.desc}</p>
+                {challengeType === type.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#FFD700] to-[#FFA500]" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* How It Works */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white"} backdrop-blur-xl rounded-xl border ${isDark ? "border-[#FFD700]/20" : "border-gray-200"} p-3 sm:p-4`}>
+          <h3 className={`text-base font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-3`}>How It Works</h3>
+          <div className={`grid grid-cols-2 ${challengeType === "instant" ? "md:grid-cols-3" : "md:grid-cols-4"} gap-2 sm:gap-3`}>
+            {(challengeType === "2-step" ? [
               { step: 1, title: "Choose Challenge", desc: "Select your account size", icon: FiTarget },
               { step: 2, title: "Pass Phase 1", desc: "Hit 8% profit target", icon: FiTrendingUp },
               { step: 3, title: "Pass Phase 2", desc: "Hit 5% profit target", icon: FiCheckCircle },
               { step: 4, title: "Get Funded", desc: "Trade with real capital", icon: FiDollarSign },
-            ].map((item, i) => (
+            ] : challengeType === "1-step" ? [
+              { step: 1, title: "Choose Challenge", desc: "Select your account size", icon: FiTarget },
+              { step: 2, title: "Pass Evaluation", desc: "Hit 10% profit target", icon: FiTrendingUp },
+              { step: 3, title: "Get Verified", desc: "Complete KYC process", icon: FiCheckCircle },
+              { step: 4, title: "Get Funded", desc: "Trade with real capital", icon: FiDollarSign },
+            ] : [
+              { step: 1, title: "Choose Account", desc: "Select your account size", icon: FiTarget },
+              { step: 2, title: "Complete Payment", desc: "One-time fee, no phases", icon: FiCreditCard },
+              { step: 3, title: "Start Trading", desc: "Instantly access your account", icon: FiDollarSign },
+            ]).map((item, i, arr) => (
               <div key={i} className="relative">
-                <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center mx-auto mb-3 border border-[#FFD700]/30">
-                    <item.icon className="text-[#FFD700]" size={20} />
+                <div className={`${isDark ? "bg-[#0d0d0d]" : "bg-gray-50"} rounded-lg p-2.5 sm:p-3 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center mx-auto mb-2 border border-[#FFD700]/30">
+                    <item.icon className="text-[#FFD700]" size={16} />
                   </div>
-                  <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-[#FFD700] text-black text-xs font-bold flex items-center justify-center">
+                  <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#FFD700] text-black text-[10px] font-bold flex items-center justify-center">
                     {item.step}
                   </div>
-                  <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>{item.title}</p>
-                  <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{item.desc}</p>
+                  <p className={`text-xs sm:text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-0.5`}>{item.title}</p>
+                  <p className={`text-[10px] sm:text-xs ${isDark ? "text-gray-500" : "text-gray-500"}`}>{item.desc}</p>
                 </div>
-                {i < 3 && (
-                  <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 text-[#FFD700]/30">
-                    <FiChevronDown className="rotate-[-90deg]" size={16} />
+                {i < arr.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 -right-1.5 transform -translate-y-1/2 text-[#FFD700]/30">
+                    <FiChevronDown className="rotate-[-90deg]" size={14} />
                   </div>
                 )}
               </div>
@@ -820,166 +791,223 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           </div>
         </div>
 
-        {/* Challenge Cards */}
+        {/* Challenge Cards with Flip Effect */}
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
           {challenges.map((challenge, i) => (
             <div
               key={i}
-              className={`relative ${isDark ? "bg-[#0a0a0a]/80" : "bg-white"} backdrop-blur-xl rounded-2xl border ${
-                challenge.popular
-                  ? "border-[#FFD700]/50 shadow-[0_0_30px_rgba(255,215,0,0.15)]"
-                  : isDark ? "border-[#1a1a1a]" : "border-gray-200"
-              } overflow-hidden group hover:shadow-[0_0_40px_rgba(255,215,0,0.1)] transition-all duration-300`}
+              className="group h-[520px] sm:h-[580px] lg:h-[640px]"
+              style={{ perspective: "1000px" }}
             >
-              {/* Popular Badge */}
-              {challenge.popular && (
-                <div className="absolute top-0 right-0">
-                  <div className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black text-xs font-bold px-4 py-1 rounded-bl-xl">
-                    MOST POPULAR
+              <div
+                className="relative w-full h-full transition-transform duration-700 ease-in-out"
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                {/* Front Face */}
+                <div
+                  className={`absolute inset-0 backdrop-blur-xl rounded-2xl border-2 overflow-hidden group-hover:[transform:rotateY(180deg)] transition-transform duration-700 ${
+                    challenge.popular
+                      ? `border-[#FFD700] ${isDark ? "bg-gradient-to-br from-[#0a0a0a] via-[#0d0d0d] to-[#FFD700]/10" : "bg-gradient-to-br from-white via-gray-50 to-[#FFD700]/10"} shadow-[0_0_40px_rgba(255,215,0,0.25)]`
+                      : `border-[#FFD700]/30 ${isDark ? "bg-gradient-to-br from-[#0a0a0a] to-[#111]" : "bg-white"} hover:border-[#FFD700]/60 hover:shadow-[0_0_25px_rgba(255,215,0,0.15)]`
+                  }`}
+                  style={{ backfaceVisibility: "hidden" }}
+                >
+                  {/* Header */}
+                  <div className={`p-3 sm:p-5 border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-100"}`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{challenge.size}</p>
+                        <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>{challengeTypeLabel}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-baseline gap-1">
+                          <span className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"} line-through`}>${challenge.originalPrice}</span>
+                          <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>${challenge.price}</span>
+                        </div>
+                        <span className="text-xs text-green-500 font-medium">Save {Math.round((1 - challenge.price / challenge.originalPrice) * 100)}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phase Breakdown */}
+                  <div className="p-3 sm:p-5 space-y-3 sm:space-y-4">
+                    {/* Instant Funded Badge */}
+                    {challengeType === "instant" && (
+                      <div className={`bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 rounded-xl p-4 border border-[#FFD700]/30`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center">
+                            <FiZap className="text-black" size={20} />
+                          </div>
+                          <div>
+                            <p className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Instant Funded Account</p>
+                            <p className="text-xs text-[#FFD700]">No evaluation required</p>
+                          </div>
+                        </div>
+                        <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Start trading immediately with real capital. No profit targets to hit before getting funded.</p>
+                      </div>
+                    )}
+
+                    {/* Phase 1 - Show for 2-step and 1-step */}
+                    {challengeType !== "instant" && (
+                      <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-3 sm:p-4`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${challengeType === "1-step" ? "bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/30" : "bg-blue-500/20 text-blue-400 border border-blue-500/30"}`}>
+                            {challengeType === "1-step" ? "EVALUATION" : "PHASE 1"}
+                          </span>
+                          <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{challengeType === "1-step" ? "One-Time" : "Evaluation"}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
+                            <p className={`${colors.goldBold} font-bold`}>{challenge.phase1Target}%</p>
+                          </div>
+                          <div>
+                            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
+                            <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold`}>{challenge.minDays}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Phase 2 - Only show for 2-step */}
+                    {challengeType === "2-step" && (
+                      <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-3 sm:p-4`}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30`}>
+                            PHASE 2
+                          </span>
+                          <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Verification</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
+                            <p className={`${colors.goldBold} font-bold`}>{challenge.phase2Target}%</p>
+                          </div>
+                          <div>
+                            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
+                            <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold`}>{challenge.minDays}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rules Grid */}
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Max Drawdown</span>
+                        <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.maxDrawdown}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Daily Loss</span>
+                        <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.dailyLoss}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Leverage</span>
+                        <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.leverage}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Time Limit</span>
+                        <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.maxDays}</span>
+                      </div>
+                    </div>
+
+                    {/* Features */}
+                    <div className={`${isDark ? "bg-[#111]/50" : "bg-gray-50"} rounded-xl p-3 sm:p-4`}>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider mb-3`}>Features</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { label: "News Trading", enabled: challenge.newsTrading },
+                          { label: "Weekend Holding", enabled: challenge.weekendHolding },
+                          { label: "EA/Bots Allowed", enabled: challenge.eaAllowed },
+                          { label: "Scaling Plan", enabled: challenge.scaling },
+                        ].map((feature, j) => (
+                          <div key={j} className="flex items-center gap-2">
+                            {feature.enabled ? (
+                              <FiCheckCircle className="text-green-500" size={14} />
+                            ) : (
+                              <FiXCircle className="text-red-400" size={14} />
+                            )}
+                            <span className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>{feature.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Hover Indicator */}
+                    <div className="flex items-center justify-center pt-2">
+                      <span className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"} flex items-center gap-2`}>
+                        <FiRefreshCw size={12} />
+                        Hover to see more
+                      </span>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {/* Header */}
-              <div className={`p-5 border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-100"}`}>
-                <div className="flex items-start justify-between">
-                  <div>
+                {/* Back Face */}
+                <div
+                  className={`absolute inset-0 ${isDark ? "bg-gradient-to-br from-[#0a0a0a] via-[#111] to-[#0a0a0a]" : "bg-white"} backdrop-blur-xl rounded-2xl border ${
+                    challenge.popular
+                      ? `border-[#FFD700]/50 shadow-[0_0_30px_rgba(255,215,0,0.15)]`
+                      : isDark ? "border-[#1a1a1a]" : "border-gray-200"
+                  } overflow-hidden group-hover:[transform:rotateY(0deg)] [transform:rotateY(-180deg)] transition-transform duration-700 flex flex-col`}
+                  style={{ backfaceVisibility: "hidden" }}
+                >
+                  {/* Back Header */}
+                  <div className="p-6 text-center border-b border-[#FFD700]/20">
+                    <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.4)] mb-4">
+                      <FiAward className="text-black" size={32} />
+                    </div>
                     <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{challenge.size}</p>
-                    <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>2-Phase Challenge</p>
+                    <p className={`text-lg font-semibold text-[#FFD700] mt-1`}>Account Challenge</p>
                   </div>
-                  <div className="text-right">
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"} line-through`}>${challenge.originalPrice}</span>
-                      <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>${challenge.price}</span>
-                    </div>
-                    <span className="text-xs text-green-500 font-medium">Save {Math.round((1 - challenge.price / challenge.originalPrice) * 100)}%</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Phase Breakdown */}
-              <div className="p-5 space-y-4">
-                {/* Phase 1 */}
-                <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30`}>
-                      PHASE 1
-                    </span>
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Evaluation</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
-                      <p className={`${colors.goldBold} font-bold`}>{challenge.phase1Target}%</p>
-                    </div>
-                    <div>
-                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
-                      <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold`}>{challenge.minDays}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Phase 2 */}
-                <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30`}>
-                      PHASE 2
-                    </span>
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Verification</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
-                      <p className={`${colors.goldBold} font-bold`}>{challenge.phase2Target}%</p>
-                    </div>
-                    <div>
-                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
-                      <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold`}>{challenge.minDays}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rules Grid */}
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Max Drawdown</span>
-                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.maxDrawdown}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Daily Loss</span>
-                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.dailyLoss}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Leverage</span>
-                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.leverage}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Time Limit</span>
-                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.maxDays}</span>
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div className={`${isDark ? "bg-[#111]/50" : "bg-gray-50"} rounded-xl p-4`}>
-                  <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider mb-3`}>Features</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: "News Trading", enabled: challenge.newsTrading },
-                      { label: "Weekend Holding", enabled: challenge.weekendHolding },
-                      { label: "EA/Bots Allowed", enabled: challenge.eaAllowed },
-                      { label: "Scaling Plan", enabled: challenge.scaling },
-                    ].map((feature, j) => (
-                      <div key={j} className="flex items-center gap-2">
-                        {feature.enabled ? (
-                          <FiCheckCircle className="text-green-500" size={14} />
-                        ) : (
-                          <FiXCircle className="text-red-400" size={14} />
-                        )}
-                        <span className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>{feature.label}</span>
+                  {/* Back Content */}
+                  <div className="flex-1 p-6 flex flex-col justify-between">
+                    {/* Key Benefits */}
+                    <div className="space-y-4">
+                      <p className={`text-sm font-semibold ${isDark ? "text-gray-400" : "text-gray-500"} uppercase tracking-wider`}>What You Get</p>
+                      <div className="space-y-3">
+                        {[
+                          { icon: FiDollarSign, text: `Up to ${challenge.profitSplit}% Profit Split` },
+                          { icon: FiTrendingUp, text: "Scale up to $2,000,000" },
+                          { icon: FiZap, text: "24-Hour Payouts" },
+                          { icon: FiShield, text: "No Hidden Fees" },
+                          { icon: FiUsers, text: "24/7 Support" },
+                        ].map((benefit, j) => (
+                          <div key={j} className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg ${isDark ? "bg-[#FFD700]/10 border-[#FFD700]/20" : "bg-amber-50 border-amber-200"} flex items-center justify-center border`}>
+                              <benefit.icon className="text-[#FFD700]" size={14} />
+                            </div>
+                            <span className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}>{benefit.text}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Profit Split & Stats */}
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/20">
-                      <span className="text-green-500 font-bold text-sm">{challenge.profitSplit}%</span>
-                    </div>
-                    <div>
-                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Profit Split</p>
-                      <p className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Up to {challenge.profitSplit}%</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Pass Rate</p>
-                    <div className="flex items-center gap-1">
-                      <div className="w-16 h-2 bg-[#111] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] rounded-full"
-                          style={{ width: `${challenge.passRate}%` }}
-                        />
+                    {/* Price & CTA */}
+                    <div className="space-y-4 mt-6">
+                      <div className="text-center">
+                        <div className="flex items-baseline justify-center gap-2">
+                          <span className={`text-lg ${isDark ? "text-gray-500" : "text-gray-400"} line-through`}>${challenge.originalPrice}</span>
+                          <span className={`text-4xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>${challenge.price}</span>
+                        </div>
+                        <span className="text-sm text-green-500 font-medium">Save {Math.round((1 - challenge.price / challenge.originalPrice) * 100)}% Today</span>
                       </div>
-                      <span className={`text-xs font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{challenge.passRate}%</span>
+
+                      {/* CTA Button */}
+                      <button className="w-full py-4 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-bold text-lg rounded-xl shadow-[0_0_30px_rgba(255,215,0,0.4)] hover:shadow-[0_0_50px_rgba(255,215,0,0.6)] transition-all duration-300 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98]">
+                        <span>Start Challenge Now</span>
+                        <FiArrowUp className="rotate-45" size={20} />
+                      </button>
+
+                      {/* Reset Discount */}
+                      <p className={`text-center text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                        <FiRefreshCw className="inline mr-1" size={12} />
+                        {challenge.resetDiscount}% discount on reset
+                      </p>
                     </div>
                   </div>
                 </div>
-
-                {/* CTA Button */}
-                <button className={`w-full py-3 ${
-                  challenge.popular
-                    ? "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-[0_0_20px_rgba(255,215,0,0.3)] hover:shadow-[0_0_30px_rgba(255,215,0,0.5)]"
-                    : isDark ? "bg-[#111] text-white border border-[#1a1a1a] hover:border-[#FFD700]/50" : "bg-gray-100 text-gray-900 border border-gray-200 hover:border-[#FFD700]"
-                } font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2`}>
-                  <span>Start Challenge</span>
-                  <FiArrowUp className="rotate-45" size={16} />
-                </button>
-
-                {/* Reset Option */}
-                <p className={`text-center text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>
-                  {challenge.resetDiscount}% discount on reset
-                </p>
               </div>
             </div>
           ))}
@@ -1431,9 +1459,9 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
         </div>
 
         {/* Events List */}
-        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} overflow-hidden`}>
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} overflow-hidden overflow-x-auto`}>
           {/* Table Header */}
-          <div className={`grid grid-cols-12 gap-4 px-6 py-3 ${isDark ? "bg-[#111]" : "bg-gray-50"} border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+          <div className={`grid grid-cols-12 gap-4 px-6 py-3 min-w-[700px] ${isDark ? "bg-[#111]" : "bg-gray-50"} border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
             <div className={`col-span-1 text-xs font-semibold ${colors.goldBold}`}>TIME</div>
             <div className={`col-span-2 text-xs font-semibold ${colors.goldBold}`}>CURRENCY</div>
             <div className={`col-span-4 text-xs font-semibold ${colors.goldBold}`}>EVENT</div>
@@ -1447,7 +1475,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           {economicEvents.map((event, i) => (
             <div
               key={i}
-              className={`grid grid-cols-12 gap-4 px-6 py-4 border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-100"} hover:bg-[#FFD700]/5 transition-colors group`}
+              className={`grid grid-cols-12 gap-4 px-6 py-4 min-w-[700px] border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-100"} hover:bg-[#FFD700]/5 transition-colors group`}
             >
               <div className={`col-span-1 text-sm font-mono ${isDark ? "text-gray-400" : "text-gray-500"}`}>
                 {event.time}
@@ -2155,7 +2183,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                     <div className="text-sm text-green-500/60 font-semibold">1% Commission</div>
                   </div>
                 </div>
-                <div className="mt-4 grid grid-cols-30 gap-px">
+                <div className="mt-4 grid gap-px" style={{ gridTemplateColumns: "repeat(30, 1fr)" }}>
                   {Array.from({ length: 90 }).map((_, i) => (
                     <div key={i} className="h-1.5 bg-[#FFD700]/40 rounded-full" style={{ width: "100%" }} />
                   ))}
@@ -2860,6 +2888,276 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
     );
   }
 
+  // Profile Tab
+  if (activeTab === "profile") {
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Profile Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} overflow-hidden`}>
+          {/* Cover Banner */}
+          <div className="h-36 sm:h-40 bg-gradient-to-r from-[#0a0a0a] via-[#FFD700]/20 to-[#0a0a0a] relative overflow-hidden">
+            {/* Animated Grid Pattern */}
+            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "linear-gradient(rgba(255,215,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,215,0,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+
+            {/* Glowing Orbs */}
+            <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-[#FFD700]/20 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-[#FFA500]/15 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "1s" }} />
+
+            {/* PIPZEN Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative">
+                <span className="text-5xl sm:text-7xl font-black tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700]/20 via-[#FFD700]/40 to-[#FFD700]/20 select-none">
+                  PIPZEN
+                </span>
+                {/* Glow effect behind text */}
+                <span className="absolute inset-0 text-5xl sm:text-7xl font-black tracking-[0.3em] text-[#FFD700]/10 blur-sm select-none">
+                  PIPZEN
+                </span>
+              </div>
+            </div>
+
+            {/* Scan Line Animation */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#FFD700]/50 to-transparent animate-[scan_3s_ease-in-out_infinite]" style={{ top: "30%" }} />
+            </div>
+
+            {/* Corner Accents */}
+            <div className="absolute top-3 left-3 w-8 h-8 border-l-2 border-t-2 border-[#FFD700]/40" />
+            <div className="absolute top-3 right-3 w-8 h-8 border-r-2 border-t-2 border-[#FFD700]/40" />
+            <div className="absolute bottom-3 left-3 w-8 h-8 border-l-2 border-b-2 border-[#FFD700]/40" />
+            <div className="absolute bottom-3 right-3 w-8 h-8 border-r-2 border-b-2 border-[#FFD700]/40" />
+
+            {/* Status Badge */}
+            <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-sm rounded-full border border-[#FFD700]/30">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-xs font-medium text-[#FFD700]">VERIFIED</span>
+            </div>
+          </div>
+
+          {/* Profile Info */}
+          <div className="px-6 pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.4)] border-4 border-[#0a0a0a]">
+                <FiUser className="text-black" size={40} />
+              </div>
+              <div className="flex-1">
+                <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>John Trader</h2>
+                <p className="text-[#FFD700] font-medium">Funded Trader</p>
+              </div>
+              <button className="px-4 py-2 bg-[#FFD700] text-black font-semibold rounded-xl hover:bg-[#FFA500] transition-colors">
+                Edit Profile
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Details Grid */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Personal Information */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center border border-[#FFD700]/30">
+                <FiUser className="text-[#FFD700]" size={18} />
+              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Personal Information</h3>
+            </div>
+            <div className="space-y-4">
+              {[
+                { label: "Full Name", value: "John Trader" },
+                { label: "Email", value: "john@example.com" },
+                { label: "Phone", value: "+1 (555) 123-4567" },
+                { label: "Country", value: "United States" },
+                { label: "Timezone", value: "EST (UTC-5)" },
+                { label: "Member Since", value: "January 2024" },
+              ].map((item, i) => (
+                <div key={i} className="flex justify-between items-center py-2 border-b border-[#1a1a1a] last:border-0">
+                  <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{item.label}</span>
+                  <span className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trading Stats */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center border border-[#FFD700]/30">
+                <FiBarChart2 className="text-[#FFD700]" size={18} />
+              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Trading Statistics</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { label: "Total Trades", value: "247", color: "text-[#FFD700]" },
+                { label: "Win Rate", value: "68%", color: "text-green-400" },
+                { label: "Total Profit", value: "$12,847", color: "text-green-400" },
+                { label: "Avg. Trade", value: "$52.05", color: "text-[#FFD700]" },
+                { label: "Best Trade", value: "+$1,250", color: "text-green-400" },
+                { label: "Worst Trade", value: "-$380", color: "text-red-400" },
+              ].map((stat, i) => (
+                <div key={i} className={`p-4 ${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+                  <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>{stat.label}</p>
+                  <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Account Status */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center border border-[#FFD700]/30">
+                <FiShield className="text-[#FFD700]" size={18} />
+              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Account Status</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <FiCheckCircle className="text-green-400" size={20} />
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Email Verified</span>
+                </div>
+                <span className="text-xs text-green-400 font-medium">Verified</span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <FiCheckCircle className="text-green-400" size={20} />
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>KYC Status</span>
+                </div>
+                <span className="text-xs text-green-400 font-medium">Approved</span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-[#FFD700]/10 border border-[#FFD700]/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <FiAward className="text-[#FFD700]" size={20} />
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Account Tier</span>
+                </div>
+                <span className="text-xs text-[#FFD700] font-medium">Gold</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Security */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center border border-[#FFD700]/30">
+                <FiShield className="text-[#FFD700]" size={18} />
+              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Security</h3>
+            </div>
+            <div className="space-y-3">
+              <button className={`w-full flex items-center justify-between p-4 ${isDark ? "bg-[#111] hover:bg-[#1a1a1a]" : "bg-gray-50 hover:bg-gray-100"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} transition-colors`}>
+                <div className="flex items-center gap-3">
+                  <FiShield className={isDark ? "text-gray-400" : "text-gray-500"} size={18} />
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Change Password</span>
+                </div>
+                <FiChevronDown className={`${isDark ? "text-gray-500" : "text-gray-400"} -rotate-90`} size={18} />
+              </button>
+              <button className={`w-full flex items-center justify-between p-4 ${isDark ? "bg-[#111] hover:bg-[#1a1a1a]" : "bg-gray-50 hover:bg-gray-100"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} transition-colors`}>
+                <div className="flex items-center gap-3">
+                  <FiSmartphone className={isDark ? "text-gray-400" : "text-gray-500"} size={18} />
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Two-Factor Auth</span>
+                </div>
+                <span className="text-xs text-green-400 font-medium">Enabled</span>
+              </button>
+              <button className={`w-full flex items-center justify-between p-4 ${isDark ? "bg-[#111] hover:bg-[#1a1a1a]" : "bg-gray-50 hover:bg-gray-100"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} transition-colors`}>
+                <div className="flex items-center gap-3">
+                  <FiActivity className={isDark ? "text-gray-400" : "text-gray-500"} size={18} />
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Login History</span>
+                </div>
+                <FiChevronDown className={`${isDark ? "text-gray-500" : "text-gray-400"} -rotate-90`} size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Help Center Tab
+  if (activeTab === "help") {
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Help Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.3)]">
+              <FiHelpCircle className="text-black" size={28} />
+            </div>
+            <div>
+              <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Help Center</h2>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Get help and support for your trading journey</p>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className={`flex items-center gap-3 px-4 py-3 ${isDark ? "bg-[#111]" : "bg-gray-100"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+            <FiGlobe className={isDark ? "text-gray-500" : "text-gray-400"} size={20} />
+            <input type="text" placeholder="Search for help articles..." className={`flex-1 bg-transparent outline-none ${isDark ? "text-white placeholder:text-gray-500" : "text-gray-900 placeholder:text-gray-400"}`} />
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { icon: FiMessageSquare, title: "Live Chat", desc: "Chat with support", color: "from-blue-500/20 to-cyan-500/10", iconColor: "text-blue-400" },
+            { icon: FiBell, title: "Submit Ticket", desc: "Create support ticket", color: "from-purple-500/20 to-pink-500/10", iconColor: "text-purple-400" },
+            { icon: FiFileText, title: "Documentation", desc: "Read our guides", color: "from-green-500/20 to-emerald-500/10", iconColor: "text-green-400" },
+            { icon: FiUsers, title: "Community", desc: "Join Discord", color: "from-[#FFD700]/20 to-[#FFA500]/10", iconColor: "text-[#FFD700]" },
+          ].map((item, i) => (
+            <button key={i} className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#1a1a1a] hover:border-[#FFD700]/30" : "border-gray-200 hover:border-[#FFD700]/50"} p-5 text-left transition-all hover:shadow-[0_0_20px_rgba(255,215,0,0.1)]`}>
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 border border-white/10`}>
+                <item.icon className={item.iconColor} size={22} />
+              </div>
+              <h3 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>{item.title}</h3>
+              <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>{item.desc}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* FAQ Section */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>Frequently Asked Questions</h3>
+          <div className="space-y-3">
+            {[
+              { q: "How do I start a new challenge?", a: "Go to the Challenges tab and select your preferred account size and challenge type." },
+              { q: "What are the profit targets?", a: "Phase 1 requires 8% profit, Phase 2 requires 5% profit for 2-step challenges." },
+              { q: "How do withdrawals work?", a: "You can request withdrawals from your funded account once you meet the minimum trading requirements." },
+              { q: "What is the maximum drawdown?", a: "The maximum drawdown limit is 10% of your initial account balance." },
+              { q: "Can I trade news events?", a: "Yes, news trading is allowed on all challenge types." },
+            ].map((faq, i) => (
+              <div key={i} className={`p-4 ${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+                <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"} mb-2`}>{faq.q}</p>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact Info */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>Contact Us</h3>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div className={`p-4 ${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
+              <FiBell className="text-[#FFD700] mx-auto mb-2" size={24} />
+              <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Email</p>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>support@pipzen.com</p>
+            </div>
+            <div className={`p-4 ${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
+              <FiMessageSquare className="text-[#FFD700] mx-auto mb-2" size={24} />
+              <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Live Chat</p>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>24/7 Available</p>
+            </div>
+            <div className={`p-4 ${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
+              <FiUsers className="text-[#FFD700] mx-auto mb-2" size={24} />
+              <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Discord</p>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Join Community</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Default: Overview
   return (
     <div className="p-4 lg:p-6 space-y-6">
@@ -3145,7 +3443,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           </div>
 
           {/* Quick Stats Row */}
-          <div className="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#1a1a1a]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#1a1a1a]">
             <div className="text-center">
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">To Target</p>
               <p className="text-green-400 font-black text-sm">${(55000 - currentBalance).toLocaleString()}</p>
@@ -3170,13 +3468,13 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           {/* Account Balance Card - Expandable */}
           <div
             onClick={() => setExpandedCard("balance")}
-            className="bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] cursor-pointer group"
+            className={`${isDark ? "bg-[#0a0a0a]" : "bg-white"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-gray-200"} p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] cursor-pointer group`}
           >
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <FiDollarSign className="text-[#FFD700]" size={20} />
-                  <p className="text-[11px] text-gray-400 font-bold tracking-widest uppercase">ACCOUNT BALANCE</p>
+                  <p className={`text-[11px] ${isDark ? "text-gray-400" : "text-gray-500"} font-bold tracking-widest uppercase`}>ACCOUNT BALANCE</p>
                 </div>
                 <p className="text-3xl font-black text-[#FFD700] tracking-tight">${(currentBalance / 1000).toFixed(1)}K</p>
                 <p className="text-xs text-green-400 font-bold mt-1">+${totalPnL.toLocaleString()} ({((totalPnL/50000)*100).toFixed(1)}%)</p>
@@ -3188,15 +3486,15 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           {/* Total Trades Card - Expandable */}
           <div
             onClick={() => setExpandedCard("trades")}
-            className="bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] cursor-pointer group"
+            className={`${isDark ? "bg-[#0a0a0a]" : "bg-white"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-gray-200"} p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] cursor-pointer group`}
           >
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <FiZap className="text-[#FFD700]" size={20} />
-                  <p className="text-[11px] text-gray-400 font-bold tracking-widest uppercase">TOTAL TRADES</p>
+                  <p className={`text-[11px] ${isDark ? "text-gray-400" : "text-gray-500"} font-bold tracking-widest uppercase`}>TOTAL TRADES</p>
                 </div>
-                <p className="text-3xl font-black text-white tracking-tight">{totalTrades}</p>
+                <p className={`text-3xl font-black ${isDark ? "text-white" : "text-gray-900"} tracking-tight`}>{totalTrades}</p>
                 <p className="text-xs text-[#FFD700] font-bold mt-1">{winRate}% win rate</p>
               </div>
               <FiMaximize2 className="text-gray-500 group-hover:text-[#FFD700] transition-colors" size={16} />
@@ -3220,10 +3518,10 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
         {/* Left: Circular Progress Gauges - SHARP & CLEAN */}
         <div
           onClick={() => setExpandedCard("metrics")}
-          className="lg:col-span-4 bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] relative overflow-hidden cursor-pointer"
+          className={`lg:col-span-4 ${isDark ? "bg-[#0a0a0a]" : "bg-white"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-gray-200"} p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] relative overflow-hidden cursor-pointer`}
         >
           <div className="flex items-center justify-between mb-4">
-            <p className="text-white font-bold flex items-center gap-2 tracking-wide">
+            <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold flex items-center gap-2 tracking-wide`}>
               <FiBarChart2 className="text-[#FFD700]" size={18} /> KEY METRICS
             </p>
             <FiMaximize2 className="text-gray-500 hover:text-[#FFD700] transition-colors" size={16} />
@@ -3231,10 +3529,10 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
 
           <div className="space-y-3">
             {/* Profit Target Gauge */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111] border border-[#FFD700]/20 hover:border-[#FFD700]/40 transition-all duration-300 cursor-pointer">
+            <div className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? "bg-[#111]" : "bg-gray-50"} border border-[#FFD700]/20 hover:border-[#FFD700]/40 transition-all duration-300 cursor-pointer`}>
               <div className="relative w-14 h-14 flex-shrink-0">
                 <svg className="w-14 h-14 transform -rotate-90">
-                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="5" fill="none" />
+                  <circle cx="28" cy="28" r="24" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="5" fill="none" />
                   <circle
                     cx="28" cy="28" r="24"
                     stroke="#FFD700"
@@ -3251,21 +3549,21 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-white font-bold text-sm tracking-wide">PROFIT TARGET</p>
+                  <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold text-sm tracking-wide`}>PROFIT TARGET</p>
                   <span className="text-[#FFD700] text-[10px] font-black bg-[#FFD700]/20 px-1.5 py-0.5 rounded"><FiTarget size={10} /></span>
                 </div>
                 <p className="text-xs text-[#FFD700] font-semibold mt-0.5">{challengeData.currentProfitPercent.toFixed(1)}% / {challengeData.profitTarget}%</p>
-                <div className="w-full h-2 bg-[#1a1a1a] rounded-full mt-2 overflow-hidden">
+                <div className={`w-full h-2 ${isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} rounded-full mt-2 overflow-hidden`}>
                   <div className="h-full bg-[#FFD700] rounded-full" style={{ width: `${(challengeData.currentProfitPercent / challengeData.profitTarget) * 100}%` }} />
                 </div>
               </div>
             </div>
 
             {/* Win Rate Gauge */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111] border border-green-500/20 hover:border-green-500/40 transition-all duration-300 cursor-pointer">
+            <div className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? "bg-[#111]" : "bg-gray-50"} border border-green-500/20 hover:border-green-500/40 transition-all duration-300 cursor-pointer`}>
               <div className="relative w-14 h-14 flex-shrink-0">
                 <svg className="w-14 h-14 transform -rotate-90">
-                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="5" fill="none" />
+                  <circle cx="28" cy="28" r="24" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="5" fill="none" />
                   <circle
                     cx="28" cy="28" r="24"
                     stroke="#22c55e"
@@ -3282,21 +3580,21 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-white font-bold text-sm tracking-wide">WIN RATE</p>
+                  <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold text-sm tracking-wide`}>WIN RATE</p>
                   <span className="text-green-500 text-[10px] font-black bg-green-500/20 px-1.5 py-0.5 rounded"><FiCheckCircle size={10} /></span>
                 </div>
                 <p className="text-xs text-green-500 font-semibold mt-0.5">{Math.round(totalTrades * winRate / 100)} wins of {totalTrades}</p>
-                <div className="w-full h-2 bg-[#1a1a1a] rounded-full mt-2 overflow-hidden">
+                <div className={`w-full h-2 ${isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} rounded-full mt-2 overflow-hidden`}>
                   <div className="h-full bg-green-500 rounded-full" style={{ width: `${winRate}%` }} />
                 </div>
               </div>
             </div>
 
             {/* Drawdown Gauge */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111] border border-orange-500/20 hover:border-orange-500/40 transition-all duration-300 cursor-pointer">
+            <div className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? "bg-[#111]" : "bg-gray-50"} border border-orange-500/20 hover:border-orange-500/40 transition-all duration-300 cursor-pointer`}>
               <div className="relative w-14 h-14 flex-shrink-0">
                 <svg className="w-14 h-14 transform -rotate-90">
-                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="5" fill="none" />
+                  <circle cx="28" cy="28" r="24" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="5" fill="none" />
                   <circle
                     cx="28" cy="28" r="24"
                     stroke="#f97316"
@@ -3313,11 +3611,11 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-white font-bold text-sm tracking-wide">DRAWDOWN</p>
+                  <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold text-sm tracking-wide`}>DRAWDOWN</p>
                   <span className="text-orange-500 text-[10px] font-black bg-orange-500/20 px-1.5 py-0.5 rounded"><FiAlertTriangle size={10} /></span>
                 </div>
                 <p className="text-xs text-orange-500 font-semibold mt-0.5">{challengeData.currentDrawdown}% / {challengeData.maxDrawdown}% max</p>
-                <div className="w-full h-2 bg-[#1a1a1a] rounded-full mt-2 overflow-hidden">
+                <div className={`w-full h-2 ${isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} rounded-full mt-2 overflow-hidden`}>
                   <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(challengeData.currentDrawdown / challengeData.maxDrawdown) * 100}%` }} />
                 </div>
               </div>
@@ -3325,91 +3623,9 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           </div>
         </div>
 
-        {/* Middle: Calendar Heatmap - SHARP & CLEAN */}
-        <div className="lg:col-span-8 bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] relative overflow-hidden">
-          {/* Header with stats */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-white font-bold tracking-wide">TRADING CALENDAR</p>
-              <p className="text-xs text-gray-500 font-medium">January 2025</p>
-            </div>
-            <div className="flex gap-3">
-              <div className="text-center px-3 py-1.5 bg-[#111] border border-green-500/30 rounded-lg">
-                <p className="text-green-400 text-[10px] font-bold uppercase tracking-wider">Profits</p>
-                <p className="text-white font-black text-sm">+${calendarTotals.profits.toLocaleString()}</p>
-              </div>
-              <div className="text-center px-3 py-1.5 bg-[#111] border border-red-500/30 rounded-lg">
-                <p className="text-red-400 text-[10px] font-bold uppercase tracking-wider">Losses</p>
-                <p className="text-white font-black text-sm">-${calendarTotals.losses.toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1 text-center text-xs relative">
-            {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
-              <div key={i} className="text-[#FFD700]/70 py-1 font-semibold">{day}</div>
-            ))}
-            {Array.from({ length: 35 }, (_, i) => {
-              const day = i - 2;
-              const isValidDay = day >= 1 && day <= 31;
-              const dayData = calendarData.find(d => {
-                const dateDay = parseInt(d.date.split("-")[2]);
-                return dateDay === day;
-              });
-              const pnl = dayData?.pnl || 0;
-              const trades = dayData?.trades || 0;
-              const bgColor = !isValidDay ? "bg-transparent" :
-                pnl > 200 ? "bg-gradient-to-br from-green-500 to-green-600 shadow-[0_0_10px_rgba(34,197,94,0.5)]" :
-                pnl > 0 ? "bg-green-500/60" :
-                pnl < -200 ? "bg-gradient-to-br from-red-500 to-red-600 shadow-[0_0_10px_rgba(239,68,68,0.5)]" :
-                pnl < 0 ? "bg-red-500/60" : "bg-[#1a1a1a]/50";
-
-              return (
-                <div
-                  key={i}
-                  onClick={() => isValidDay && dayData && dayData.trades > 0 && setSelectedDay(dayData)}
-                  className={`aspect-square rounded-lg ${bgColor} flex flex-col items-center justify-center text-[10px] transition-all duration-200 ${isValidDay && dayData && dayData.trades > 0 ? "cursor-pointer hover:scale-110 hover:z-10" : ""} ${isValidDay ? "text-white font-medium" : ""}`}
-                >
-                  {isValidDay && (
-                    <>
-                      <span>{day}</span>
-                      {trades > 0 && <span className="text-[8px] opacity-70">{trades}t</span>}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Bottom Stats - P&L and Balance */}
-          <div className="mt-4 pt-3 border-t border-[#1a1a1a] space-y-3">
-            {/* P&L and Balance Row */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#111] rounded-lg p-3 border border-green-500/30">
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Month P&L</p>
-                <p className="text-green-400 font-black text-lg">+${(calendarTotals.profits - calendarTotals.losses).toLocaleString()}</p>
-              </div>
-              <div className="bg-[#111] rounded-lg p-3 border border-[#FFD700]/30">
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Balance</p>
-                <p className="text-[#FFD700] font-black text-lg">${currentBalance.toLocaleString()}</p>
-              </div>
-            </div>
-            {/* Days Stats Row */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-green-500" />
-                  <span className="text-green-400 font-bold">{calendarTotals.winDays} win</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded bg-red-500" />
-                  <span className="text-red-400 font-bold">{calendarTotals.lossDays} loss</span>
-                </div>
-              </div>
-              <span className="text-gray-400 font-semibold">{calendarTotals.totalDayTrades} trades</span>
-            </div>
-          </div>
+        {/* Middle: Calendar - Redesigned to match reference */}
+        <div className="lg:col-span-8">
+          <PnLCalendar data={calendarData} isDark={isDark} />
         </div>
       </div>
 
@@ -3423,7 +3639,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           { label: "AVG WIN", value: "$187", color: "#22c55e", Icon: FiCheckCircle, pulse: false },
           { label: "AVG LOSS", value: "$89", color: "#ef4444", Icon: FiTrendingDown, pulse: false },
         ].map((stat, i) => (
-          <div key={i} className="bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-4 text-center relative overflow-hidden hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.2)] cursor-pointer group">
+          <div key={i} className={`${isDark ? "bg-[#0a0a0a]" : "bg-white"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-gray-200"} p-4 text-center relative overflow-hidden hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.2)] cursor-pointer group`}>
             {/* Background glow on hover */}
             <div
               className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300"
@@ -3435,25 +3651,25 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                 <stat.Icon size={22} style={{ color: stat.color }} />
               </div>
               {/* Circular progress ring */}
-              <div className="relative w-20 h-20 mx-auto mb-3">
-                <svg className="w-20 h-20 transform -rotate-90">
-                  <circle cx="40" cy="40" r="34" stroke="#1a1a1a" strokeWidth="4" fill="none" />
+              <div className="relative w-24 h-24 mx-auto mb-3">
+                <svg className="w-24 h-24 transform -rotate-90">
+                  <circle cx="48" cy="48" r="42" stroke={isDark ? "#1a1a1a" : "#e5e7eb"} strokeWidth="4" fill="none" />
                   <circle
-                    cx="40" cy="40" r="34"
+                    cx="48" cy="48" r="42"
                     stroke={stat.color}
                     strokeWidth="4"
                     fill="none"
-                    strokeDasharray="214"
-                    strokeDashoffset={214 - (214 * ((i + 1) * 15) / 100)}
+                    strokeDasharray="264"
+                    strokeDashoffset={264 - (264 * ((i + 1) * 15) / 100)}
                     strokeLinecap="round"
                     className="transition-all duration-700"
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-black tracking-tight" style={{ color: stat.color }}>{stat.value}</span>
+                  <span className="text-base font-black tracking-tight whitespace-nowrap" style={{ color: stat.color }}>{stat.value}</span>
                 </div>
               </div>
-              <p className="text-[11px] text-gray-400 font-bold tracking-widest uppercase">{stat.label}</p>
+              <p className={`text-[11px] ${isDark ? "text-gray-400" : "text-gray-500"} font-bold tracking-widest uppercase`}>{stat.label}</p>
             </div>
           </div>
         ))}
@@ -3566,7 +3782,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 relative">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 relative">
             {[
               { label: "Profit Factor", value: "2.34", color: "#FFD700", Icon: FiPercent, good: true },
               { label: "Best Trade", value: "$1,110", color: "#22c55e", Icon: FiAward, good: true },
@@ -4183,9 +4399,9 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                           <p className="text-xs text-gray-500">{session.trades} trades executed</p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-3 mb-4">
-                        <div className="text-center p-3 bg-[#111]/50 rounded-lg">
-                          <p className="text-lg font-bold" style={{ color: session.color }}>{session.winRate}%</p>
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+                        <div className="text-center p-2 sm:p-3 bg-[#111]/50 rounded-lg">
+                          <p className="text-base sm:text-lg font-bold" style={{ color: session.color }}>{session.winRate}%</p>
                           <p className="text-[10px] text-gray-500">Win Rate</p>
                         </div>
                         <div className="text-center p-3 bg-[#111]/50 rounded-lg">
@@ -4239,7 +4455,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                           <p className="text-xs text-gray-500">{symbol.winRate}% win rate</p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                         <div className="text-center p-2 bg-[#111]/50 rounded-lg">
                           <p className="text-sm font-bold text-white">{symbol.trades}</p>
                           <p className="text-[10px] text-gray-500">Trades</p>
