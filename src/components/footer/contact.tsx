@@ -4,7 +4,7 @@ import { FaYoutube, FaDiscord } from "react-icons/fa";
 import { RiInstagramFill } from "react-icons/ri";
 import { FaXTwitter } from "react-icons/fa6";
 
-import logo from "@/../public/logo.png";
+import logo from "@/../public/logo.svg";
 import Image from "next/image";
 
 import { Contact as ContactData } from "../../../data/page/contact";

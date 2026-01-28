@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
 import { useRouter } from "next/navigation";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
@@ -89,15 +90,18 @@ const Signin = () => {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-block group">
+          <Link href="/" className="inline-flex flex-col items-center group">
             <div className="relative">
-              <h1 className="text-4xl font-bold text-white tracking-tight">
-                Pip<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] to-[#FFC000]">zen</span>
-              </h1>
+              <div className="w-20 h-20 relative">
+                <Image src="/logo.svg" alt="Pipzen" fill className="object-contain" />
+              </div>
               <div className="absolute -inset-4 bg-[#FFD700]/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             </div>
+            <h1 className="text-3xl font-bold text-white tracking-tight mt-3">
+              Pip<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] to-[#FFC000]">zen</span>
+            </h1>
           </Link>
-          <p className="text-gray-500 mt-3 text-sm tracking-wide">ELITE TRADER ACCESS</p>
+          <p className="text-gray-500 mt-2 text-sm tracking-wide">ELITE TRADER ACCESS</p>
         </div>
 
         {/* Glass Card */}

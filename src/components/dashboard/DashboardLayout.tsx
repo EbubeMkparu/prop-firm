@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   FiHome,
   FiUsers,
@@ -98,10 +99,8 @@ export default function DashboardLayout() {
         {/* Logo */}
         <div className={`p-4 border-b ${colors.border} relative`}>
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.3)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.5)] transition-all duration-300">
-              <svg className="w-6 h-6 text-black" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-              </svg>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(255,215,0,0.3)] group-hover:shadow-[0_0_30px_rgba(255,215,0,0.5)] transition-all duration-300 overflow-hidden">
+              <Image src="/logo.svg" alt="Pipzen" width={40} height={40} className="object-contain" />
             </div>
             {!sidebarCollapsed && (
               <span className="text-xl font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent tracking-wide">PIPZEN</span>
@@ -298,10 +297,8 @@ export default function DashboardLayout() {
       >
         <div className={`flex items-center justify-between p-4 border-b ${colors.border}`}>
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_15px_rgba(255,215,0,0.3)]">
-              <svg className="w-5 h-5 text-black" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-              </svg>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(255,215,0,0.3)] overflow-hidden">
+              <Image src="/logo.svg" alt="Pipzen" width={32} height={32} className="object-contain" />
             </div>
             <span className="text-lg font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">PIPZEN</span>
           </Link>

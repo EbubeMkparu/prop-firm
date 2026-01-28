@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import {
   FiTrendingUp, FiTrendingDown, FiActivity, FiX, FiCheckCircle, FiXCircle, FiMaximize2,
   FiTarget, FiDollarSign, FiBarChart2, FiZap, FiAlertTriangle,
@@ -2618,11 +2619,19 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                 {cert.status === "issued" && (
                   <div className="absolute top-0 right-0 w-20 h-20 bg-[#FFD700]/10 rounded-full blur-2xl" />
                 )}
+                {/* Pipzen Logo Watermark */}
+                <div className="absolute top-3 right-3 opacity-20 group-hover:opacity-30 transition-opacity">
+                  <Image src="/logo.svg" alt="" width={40} height={40} className={cert.status !== "issued" ? "grayscale" : ""} />
+                </div>
                 <div className="relative">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl ${cert.status === "issued" ? "bg-gradient-to-br from-[#FFD700] to-[#FFA500]" : isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} flex items-center justify-center`}>
-                        <FiAward className={cert.status === "issued" ? "text-black" : isDark ? "text-gray-500" : "text-gray-400"} size={24} />
+                      <div className={`w-12 h-12 rounded-xl ${cert.status === "issued" ? "" : isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} flex items-center justify-center overflow-hidden`}>
+                        {cert.status === "issued" ? (
+                          <Image src="/logo.svg" alt="Pipzen" width={48} height={48} className="object-contain" />
+                        ) : (
+                          <FiAward className={isDark ? "text-gray-500" : "text-gray-400"} size={24} />
+                        )}
                       </div>
                       <div>
                         <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{cert.type}</p>
