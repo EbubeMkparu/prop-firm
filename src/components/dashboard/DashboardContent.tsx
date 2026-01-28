@@ -2095,8 +2095,8 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                     <span className="text-base">Master Referee</span>
                     <p className="text-xs opacity-70 mt-1">(YOU)</p>
                   </div>
-                  {/* Hover tooltip */}
-                  <div className={`absolute left-1/2 -translate-x-1/2 top-full mt-4 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 min-w-[260px]`}>
+                  {/* Hover tooltip - appears to the RIGHT */}
+                  <div className={`absolute left-full ml-4 top-1/2 -translate-y-1/2 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-[200] min-w-[260px]`}>
                     <p className={`text-base font-bold ${isDark ? "text-white" : "text-gray-900"} mb-2`}>You (Master Referee)</p>
                     <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-4`}>Earn commissions from all 3 levels</p>
                     <div className={`space-y-3 pt-4 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
@@ -2141,13 +2141,13 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
               <div className="flex justify-between px-0 mt-8">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                   <div key={num} className="flex flex-col items-center">
-                    <div className="relative group cursor-pointer z-10">
+                    <div className="relative group cursor-pointer z-10 hover:z-[300]">
                       <div className="bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white px-4 py-3 rounded-xl font-semibold text-sm shadow-lg hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] transition-all min-w-[85px] text-center">
                         <span>Person {num}</span>
                         <p className="text-[11px] opacity-80 mt-1">6% Commission</p>
                       </div>
-                      {/* Hover tooltip */}
-                      <div className={`absolute left-1/2 -translate-x-1/2 top-full mt-3 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-green-500/30" : "border-green-500/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 min-w-[220px]`}>
+                      {/* Hover tooltip - floats on top of everything */}
+                      <div className={`absolute left-1/2 -translate-x-1/2 top-full mt-4 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-green-500/30" : "border-green-500/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-[9999] min-w-[220px]`}>
                         <p className="text-base font-bold text-green-500 mb-2">Direct Referral — 6%</p>
                         <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-4`}>Someone you personally invited</p>
                         <div className={`space-y-2 pt-3 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
