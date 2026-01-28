@@ -115,14 +115,25 @@ export default function EcosystemPage() {
           style={{ animationDelay: "2s" }}
         />
 
+        {/* Floating Particles */}
+        <div className="absolute top-20 left-10 w-2 h-2 bg-[#FFD700] rounded-full animate-bounce opacity-60" style={{ animationDelay: "0s", animationDuration: "3s" }} />
+        <div className="absolute top-40 right-20 w-3 h-3 bg-cyan-400 rounded-full animate-bounce opacity-50" style={{ animationDelay: "0.5s", animationDuration: "2.5s" }} />
+        <div className="absolute bottom-40 left-1/4 w-2 h-2 bg-purple-400 rounded-full animate-bounce opacity-60" style={{ animationDelay: "1s", animationDuration: "3.5s" }} />
+        <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce opacity-50" style={{ animationDelay: "1.5s", animationDuration: "2.8s" }} />
+        <div className="absolute bottom-1/4 right-10 w-2.5 h-2.5 bg-orange-400 rounded-full animate-bounce opacity-40" style={{ animationDelay: "2s", animationDuration: "3.2s" }} />
+
         {/* Mouse Follow Gradient */}
         <div
-          className="absolute w-[400px] h-[400px] rounded-full bg-[#FFD700]/5 blur-[100px] transition-all duration-1000 ease-out pointer-events-none"
+          className="absolute w-[400px] h-[400px] rounded-full bg-[#FFD700]/8 blur-[100px] transition-all duration-1000 ease-out pointer-events-none"
           style={{
             left: mousePosition.x - 200,
             top: mousePosition.y - 200,
           }}
         />
+
+        {/* Animated Lines */}
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-[#FFD700]/20 to-transparent opacity-30" />
+        <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-500/20 to-transparent opacity-20" />
       </div>
 
       {/* Navigation */}
@@ -213,17 +224,15 @@ export default function EcosystemPage() {
                 onMouseEnter={() => setActiveColony(colony.id)}
                 onMouseLeave={() => setActiveColony(null)}
               >
-                <a
-                  href={colony.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
+                {/* Animated Border Glow */}
+                <div className={`absolute -inset-0.5 bg-gradient-to-r ${colony.color} rounded-3xl opacity-0 group-hover:opacity-75 blur transition-all duration-500 group-hover:duration-200`} />
+
+                <div className="relative">
                   <div
                     className={`relative p-8 md:p-10 rounded-3xl border transition-all duration-500 overflow-hidden ${
                       activeColony === colony.id
-                        ? `bg-gradient-to-br ${colony.color} bg-opacity-10 border-white/20 shadow-2xl ${colony.glowColor}`
-                        : "bg-white/[0.02] border-white/5 hover:border-white/10"
+                        ? `bg-[#0a0a0a] border-white/20 shadow-2xl ${colony.glowColor}`
+                        : "bg-[#0a0a0a]/90 border-white/10 hover:border-white/20"
                     }`}
                   >
                     {/* Background Glow */}
@@ -264,26 +273,40 @@ export default function EcosystemPage() {
                       </p>
 
                       {/* Features */}
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-3 mb-8">
                         {colony.features.map((feature, i) => (
                           <div
                             key={i}
-                            className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300"
+                            className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300 group-hover:bg-white/10 group-hover:border-white/20 transition-all"
                           >
-                            {feature}
+                            <span className="flex items-center gap-2">
+                              <HiOutlineSparkles className="w-3 h-3 text-[#FFD700]" />
+                              {feature}
+                            </span>
                           </div>
                         ))}
                       </div>
 
-                      {/* Visit Link */}
-                      <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
-                        <span className="text-sm text-gray-500">
-                          Visit Platform
-                        </span>
-                        <span className="flex items-center gap-2 text-sm font-medium text-white group-hover:text-[#FFD700] transition-colors">
-                          {colony.url.replace("https://", "").replace("www.", "")}
-                          <HiOutlineChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </span>
+                      {/* CTA Button */}
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <a
+                          href={colony.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex-1 flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r ${colony.color} text-white font-bold text-lg shadow-lg hover:shadow-xl hover:shadow-[${colony.glowColor}] hover:scale-[1.02] transition-all duration-300 group/btn`}
+                        >
+                          <span>Launch Platform</span>
+                          <HiOutlineArrowUpRight className="w-5 h-5 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                        </a>
+                        <a
+                          href={colony.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-4 rounded-2xl border-2 border-white/20 text-white font-semibold hover:bg-white/10 hover:border-white/40 transition-all flex items-center justify-center gap-2"
+                        >
+                          <span>Learn More</span>
+                          <HiOutlineChevronRight className="w-4 h-4" />
+                        </a>
                       </div>
                     </div>
 
@@ -292,27 +315,38 @@ export default function EcosystemPage() {
                       className={`absolute -top-20 -right-20 w-40 h-40 rounded-full blur-[80px] bg-gradient-to-br ${colony.color} opacity-0 group-hover:opacity-30 transition-opacity duration-500`}
                     />
                   </div>
-                </a>
+                </div>
               </div>
             ))}
           </div>
 
           {/* Bottom CTA */}
-          <div className="mt-20 text-center">
-            <div className="inline-flex flex-col items-center gap-6">
-              <p className="text-gray-500">Part of the CryptoMadness Ecosystem</p>
+          <div className="mt-24 text-center">
+            <div className="relative inline-flex flex-col items-center gap-8 p-12 rounded-3xl bg-gradient-to-br from-[#FFD700]/5 to-orange-500/5 border border-[#FFD700]/20">
+              {/* Decorative Elements */}
+              <div className="absolute -top-px left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent" />
+              <div className="absolute -bottom-px left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent" />
+
+              <div className="flex items-center gap-2 text-gray-400">
+                <HiOutlineSparkles className="w-5 h-5 text-[#FFD700]" />
+                <span className="text-lg">Powered by the CryptoMadness Ecosystem</span>
+                <HiOutlineSparkles className="w-5 h-5 text-[#FFD700]" />
+              </div>
+
               <a
                 href="https://www.cryptomadness.info"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#FFD700]/30 transition-all"
+                className="group relative flex items-center gap-4 px-10 py-5 rounded-2xl bg-gradient-to-r from-[#FFD700] via-yellow-400 to-orange-500 text-black font-bold text-lg shadow-lg shadow-[#FFD700]/30 hover:shadow-xl hover:shadow-[#FFD700]/50 hover:scale-[1.02] transition-all duration-300"
               >
-                <HiOutlineGlobeAlt className="w-6 h-6 text-[#FFD700]" />
-                <span className="text-white font-semibold">
-                  Explore CryptoMadness
-                </span>
-                <HiOutlineArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-[#FFD700] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                <HiOutlineGlobeAlt className="w-6 h-6" />
+                <span>Explore CryptoMadness</span>
+                <HiOutlineArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </a>
+
+              <p className="text-sm text-gray-500 max-w-md">
+                Join the revolution. Build your future with the most comprehensive digital finance ecosystem.
+              </p>
             </div>
           </div>
         </div>
