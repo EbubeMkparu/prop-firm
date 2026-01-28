@@ -2072,142 +2072,198 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           </div>
         </div>
 
-        {/* Premium Referral Network Visualization */}
-        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-8 relative overflow-hidden`}>
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FFD700]/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#FFD700]/5 rounded-full blur-3xl" />
+        {/* Horizontal Tree Referral Network Visualization */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-8 sm:p-10 lg:p-12 relative`}>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FFD700]/5 rounded-full blur-3xl pointer-events-none" />
 
-          <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"} mb-2 text-center relative`}>
+          <h3 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"} mb-3 text-center relative`}>
             Referral Network Structure
           </h3>
-          <p className={`text-center ${isDark ? "text-gray-500" : "text-gray-400"} text-sm mb-8`}>
-            Build your network and earn passive income from multiple levels
+          <p className={`text-center ${isDark ? "text-gray-500" : "text-gray-400"} text-sm mb-10`}>
+            Hover over any box to see commission details • All levels have unlimited referrals
           </p>
 
-          {/* Clean Vertical Tier Layout */}
-          <div className="relative max-w-4xl mx-auto">
-            {/* Level 1: Master Referee (YOU) */}
-            <div className="flex flex-col items-center mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-[#FFD700] rounded-2xl blur-xl opacity-40" />
-                <div className="relative bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-black px-8 py-4 rounded-2xl font-bold text-lg shadow-[0_0_30px_rgba(255,215,0,0.3)]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-black/20 rounded-full flex items-center justify-center">
-                      <FiUsers size={20} />
-                    </div>
-                    <div>
-                      <div className="text-sm opacity-80">Level 1</div>
-                      <div>Master Referee (YOU)</div>
+          {/* Horizontal Tree Structure */}
+          <div className="relative overflow-visible pb-8">
+            <div className="min-w-[900px] mx-auto px-4 overflow-x-auto">
+
+              {/* Master Referee (YOU) - Top Center */}
+              <div className="flex flex-col items-center">
+                <div className="relative group cursor-pointer z-10">
+                  <div className="absolute inset-0 bg-[#FFD700] rounded-xl blur-lg opacity-40 group-hover:opacity-70 transition-opacity" />
+                  <div className="relative bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-black px-10 py-4 rounded-xl font-bold shadow-lg text-center">
+                    <span className="text-base">Master Referee</span>
+                    <p className="text-xs opacity-70 mt-1">(YOU)</p>
+                  </div>
+                  {/* Hover tooltip */}
+                  <div className={`absolute left-1/2 -translate-x-1/2 top-full mt-4 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 min-w-[260px]`}>
+                    <p className={`text-base font-bold ${isDark ? "text-white" : "text-gray-900"} mb-2`}>You (Master Referee)</p>
+                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-4`}>Earn commissions from all 3 levels</p>
+                    <div className={`space-y-3 pt-4 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-500">Level 1 (Direct)</span>
+                        <span className="text-green-500 font-bold">6%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-blue-500">Level 2 (Sub-refs)</span>
+                        <span className="text-blue-500 font-bold">3%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-500">Level 3 (Tier 3)</span>
+                        <span className="text-purple-500 font-bold">1%</span>
+                      </div>
+                      <div className={`flex justify-between text-sm pt-3 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
+                        <span className={isDark ? "text-white" : "text-gray-900"}>Total Potential</span>
+                        <span className="text-[#FFD700] font-bold">10%</span>
+                      </div>
                     </div>
                   </div>
+                </div>
+
+                {/* Vertical line from Master to horizontal branch */}
+                <div className="w-1 h-12 bg-gradient-to-b from-[#FFD700] to-[#22c55e] rounded-full" />
+
+                {/* Horizontal branch line */}
+                <div className="w-[800px] h-1 bg-gradient-to-r from-[#22c55e]/30 via-[#22c55e] to-[#22c55e]/30 rounded-full relative">
+                  {/* Vertical connectors to Level 1 boxes */}
+                  <div className="absolute left-0 top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
+                  <div className="absolute left-[14%] top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
+                  <div className="absolute left-[28%] top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
+                  <div className="absolute left-[42%] top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
+                  <div className="absolute left-[56%] top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
+                  <div className="absolute left-[70%] top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
+                  <div className="absolute left-[84%] top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
+                  <div className="absolute right-0 top-0 w-1 h-6 bg-[#22c55e] rounded-full" />
                 </div>
               </div>
-              {/* Connecting Line */}
-              <div className="w-1 h-8 bg-gradient-to-b from-[#FFD700] to-[#FFD700]/30 rounded-full mt-2" />
-            </div>
 
-            {/* Level 2: Direct Referrals */}
-            <div className="flex flex-col items-center mb-6">
-              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-100/90"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/40"} p-6 w-full max-w-md relative overflow-hidden`}>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/10 rounded-full blur-2xl" />
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#FFD700]/20 rounded-xl flex items-center justify-center border border-[#FFD700]/30">
-                      <span className="text-[#FFD700] font-bold text-lg">L2</span>
+              {/* Level 1: Direct Referrals - Green (Person 1-8) */}
+              <div className="flex justify-between px-0 mt-8">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                  <div key={num} className="flex flex-col items-center">
+                    <div className="relative group cursor-pointer z-10">
+                      <div className="bg-gradient-to-br from-[#22c55e] to-[#16a34a] text-white px-4 py-3 rounded-xl font-semibold text-sm shadow-lg hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] transition-all min-w-[85px] text-center">
+                        <span>Person {num}</span>
+                        <p className="text-[11px] opacity-80 mt-1">6% Commission</p>
+                      </div>
+                      {/* Hover tooltip */}
+                      <div className={`absolute left-1/2 -translate-x-1/2 top-full mt-3 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-green-500/30" : "border-green-500/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 min-w-[220px]`}>
+                        <p className="text-base font-bold text-green-500 mb-2">Direct Referral — 6%</p>
+                        <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-4`}>Someone you personally invited</p>
+                        <div className={`space-y-2 pt-3 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
+                          <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>If they buy $299 challenge:</p>
+                          <div className="flex justify-between text-sm">
+                            <span className={isDark ? "text-gray-400" : "text-gray-500"}>You earn</span>
+                            <span className="text-green-500 font-bold">$17.94</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-[#FFD700] mt-3 font-semibold">∞ UNLIMITED REFERRALS</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Direct Referrals</p>
-                      <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>People you directly invite</p>
-                    </div>
+                    {/* Vertical line to sub-referrals */}
+                    <div className="w-1 h-10 bg-gradient-to-b from-[#22c55e] to-[#3b82f6] rounded-full" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-[#FFD700]">10</div>
-                    <div className="text-sm text-green-500 font-semibold">6% Commission</div>
-                  </div>
-                </div>
-                <div className="mt-4 flex gap-1">
-                  {Array.from({ length: 10 }).map((_, i) => (
-                    <div key={i} className="flex-1 h-2 bg-[#FFD700] rounded-full" />
-                  ))}
-                </div>
+                ))}
               </div>
-              {/* Connecting Line */}
-              <div className="w-1 h-8 bg-gradient-to-b from-[#FFD700]/50 to-[#FFD700]/20 rounded-full mt-2" />
-            </div>
 
-            {/* Level 3: Sub-Referrals */}
-            <div className="flex flex-col items-center mb-6">
-              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-100/90"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 w-full max-w-md relative overflow-hidden`}>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/5 rounded-full blur-2xl" />
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#FFD700]/10 rounded-xl flex items-center justify-center border border-[#FFD700]/20">
-                      <span className="text-[#FFD700]/80 font-bold text-lg">L3</span>
+              {/* Level 2: Sub-Referrals - Blue */}
+              <div className="flex justify-between px-0 mt-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((parentNum) => (
+                  <div key={parentNum} className="flex flex-col items-center">
+                    {/* Sub-referral boxes for each person */}
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3].map((subNum) => (
+                        <div key={subNum} className="relative group cursor-pointer z-10 hover:z-50">
+                          {/* Glow effect on hover */}
+                          <div className="absolute inset-0 bg-blue-500 rounded-lg blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none" />
+                          <div className="relative bg-gradient-to-br from-[#3b82f6] to-[#2563eb] text-white w-[28px] h-[24px] rounded-lg text-[9px] flex items-center justify-center font-bold shadow-md hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:scale-110 transition-all duration-200 border border-blue-400/30">
+                            {parentNum}.{subNum}
+                          </div>
+                          {/* Hover tooltip - appears BELOW to avoid overlap with Level 1 */}
+                          <div className={`absolute left-1/2 -translate-x-1/2 top-full mt-4 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-blue-500/30" : "border-blue-500/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-[100] min-w-[220px]`}>
+                            <p className="text-base font-bold text-blue-500 mb-2">Sub-Referral {parentNum}.{subNum} — 3%</p>
+                            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-4`}>Person {parentNum}&apos;s referral #{subNum}</p>
+                            <div className={`space-y-2 pt-3 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
+                              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>If they buy $299 challenge:</p>
+                              <div className="flex justify-between text-sm">
+                                <span className={isDark ? "text-gray-400" : "text-gray-500"}>You earn</span>
+                                <span className="text-blue-500 font-bold">$8.97</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-[#FFD700] mt-3 font-semibold">∞ UNLIMITED REFERRALS</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <p className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Sub-Referrals</p>
-                      <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Your referrals invite</p>
+                    {/* Vertical lines to tier 3 */}
+                    <div className="flex gap-1.5 mt-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="w-1 h-6 bg-gradient-to-b from-[#3b82f6] to-[#a855f7] rounded-full" />
+                      ))}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-[#FFD700]/80">30</div>
-                    <div className="text-sm text-green-500/80 font-semibold">3% Commission</div>
-                  </div>
-                </div>
-                <div className="mt-4 flex gap-0.5">
-                  {Array.from({ length: 30 }).map((_, i) => (
-                    <div key={i} className="flex-1 h-2 bg-[#FFD700]/60 rounded-full" />
-                  ))}
-                </div>
+                ))}
               </div>
-              {/* Connecting Line */}
-              <div className="w-1 h-8 bg-gradient-to-b from-[#FFD700]/30 to-[#FFD700]/10 rounded-full mt-2" />
-            </div>
 
-            {/* Level 4: Tier 3 Referrals */}
-            <div className="flex flex-col items-center">
-              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-100/90"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"} p-6 w-full max-w-md relative overflow-hidden`}>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/5 rounded-full blur-2xl" />
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-[#FFD700]/5 rounded-xl flex items-center justify-center border border-[#FFD700]/10">
-                      <span className="text-[#FFD700]/60 font-bold text-lg">L4</span>
-                    </div>
-                    <div>
-                      <p className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Tier 3 Referrals</p>
-                      <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Deep network earnings</p>
+              {/* Level 3: Tier 3 - Purple */}
+              <div className="flex justify-between px-0 mt-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((parentNum) => (
+                  <div key={parentNum} className="flex flex-col items-center">
+                    {/* Tier 3 boxes for each sub-referral branch */}
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5, 6].map((tier3Num) => (
+                        <div key={tier3Num} className="relative group cursor-pointer z-10">
+                          {/* Glow effect on hover */}
+                          <div className="absolute inset-0 bg-purple-500 rounded blur-sm opacity-0 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none" />
+                          <div className="relative bg-gradient-to-br from-[#a855f7] to-[#9333ea] text-white w-[16px] h-[14px] rounded text-[6px] flex items-center justify-center font-medium shadow-sm hover:shadow-[0_0_15px_rgba(168,85,247,0.6)] hover:scale-125 transition-all duration-200 border border-purple-400/30" />
+                          {/* Hover tooltip - appears ABOVE for every card */}
+                          <div className={`absolute left-1/2 -translate-x-1/2 bottom-full mb-4 ${isDark ? "bg-[#111]" : "bg-white"} rounded-xl p-5 border ${isDark ? "border-purple-500/30" : "border-purple-500/40"} shadow-2xl invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 z-50 min-w-[220px]`}>
+                            <p className="text-base font-bold text-purple-500 mb-2">Tier 3 Referral — 1%</p>
+                            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-4`}>Deep network passive income</p>
+                            <div className={`space-y-2 pt-3 border-t ${isDark ? "border-gray-800" : "border-gray-200"}`}>
+                              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>If they buy $299 challenge:</p>
+                              <div className="flex justify-between text-sm">
+                                <span className={isDark ? "text-gray-400" : "text-gray-500"}>You earn</span>
+                                <span className="text-purple-500 font-bold">$2.99</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-[#FFD700] mt-3 font-semibold">∞ UNLIMITED REFERRALS</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-[#FFD700]/60">90</div>
-                    <div className="text-sm text-green-500/60 font-semibold">1% Commission</div>
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-px" style={{ gridTemplateColumns: "repeat(30, 1fr)" }}>
-                  {Array.from({ length: 90 }).map((_, i) => (
-                    <div key={i} className="h-1.5 bg-[#FFD700]/40 rounded-full" style={{ width: "100%" }} />
-                  ))}
+                ))}
+              </div>
+
+              {/* More indicator */}
+              <div className="flex justify-center mt-8">
+                <div className={`px-6 py-3 ${isDark ? "bg-[#111]/80" : "bg-gray-100"} rounded-full border ${isDark ? "border-[#FFD700]/20" : "border-gray-300"}`}>
+                  <span className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>Network continues infinitely at all levels...</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Commission Summary */}
-          <div className={`mt-10 grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 border-t ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
-            <div className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-gray-50/80"} backdrop-blur rounded-xl p-4 text-center border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
-              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Max Potential Network</p>
-              <p className="text-2xl font-bold text-[#FFD700]">131</p>
-              <p className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>1 + 10 + 30 + 90</p>
-            </div>
-            <div className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-gray-50/80"} backdrop-blur rounded-xl p-4 text-center border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
-              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Combined Commission Rate</p>
-              <p className="text-2xl font-bold text-green-500">10%</p>
-              <p className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>6% + 3% + 1%</p>
-            </div>
-            <div className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-gray-50/80"} backdrop-blur rounded-xl p-4 text-center border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
-              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Passive Income Potential</p>
-              <p className="text-2xl font-bold text-[#FFD700]">Unlimited</p>
-              <p className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>Recurring earnings</p>
+          {/* Legend */}
+          <div className={`mt-10 ${isDark ? "bg-[#111]/80" : "bg-gray-50/80"} rounded-xl p-5 border ${isDark ? "border-[#FFD700]/10" : "border-gray-200"}`}>
+            <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-lg shadow-sm" />
+                <span className={isDark ? "text-gray-400" : "text-gray-600"}>Master Referee (You)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-[#22c55e] to-[#16a34a] rounded-lg shadow-sm" />
+                <span className={isDark ? "text-gray-400" : "text-gray-600"}>Level 1: Direct — <span className="text-green-500 font-bold">6%</span></span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-lg shadow-sm" />
+                <span className={isDark ? "text-gray-400" : "text-gray-600"}>Level 2: Sub-Refs — <span className="text-blue-500 font-bold">3%</span></span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-[#a855f7] to-[#9333ea] rounded-lg shadow-sm" />
+                <span className={isDark ? "text-gray-400" : "text-gray-600"}>Level 3: Tier 3 — <span className="text-purple-500 font-bold">1%</span></span>
+              </div>
             </div>
           </div>
         </div>

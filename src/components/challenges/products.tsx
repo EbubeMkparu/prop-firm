@@ -31,7 +31,7 @@ const Products = () => {
   const platformOptions = ["MATCHTRADER", "DXTRADE", "CTRADER"];
 
   return (
-    <div className=" overflow-x-hidden overflow-y-hidden relative  pt-5 pb-6 w-full md:w-[60%] bg-black rounded-2xl min-h-[720px] shadow-[rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0.05)_0px_1px_2px_0px]">
+    <div className=" overflow-x-hidden overflow-y-hidden relative  pt-5 pb-6 w-full md:w-[60%] bg-black rounded-2xl min-h-[auto] sm:min-h-[720px] shadow-[rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0.05)_0px_1px_2px_0px]">
       <h1 className="textx-2xl lg:text-3xl font-semibold relative pl-4">
         Billing Info
         <div className="absolute w-[8px] h-full bg-[#FFD700] rounded-e-2xl top-0 left-0"></div>

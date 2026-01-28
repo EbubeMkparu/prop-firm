@@ -64,7 +64,17 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const { theme, toggleTheme, isDark } = useTheme();
+
+  // Sample notifications
+  const notifications = [
+    { id: 1, title: "Challenge Passed!", message: "Congratulations! You've passed Phase 1.", time: "2 mins ago", type: "success", unread: true },
+    { id: 2, title: "Withdrawal Processed", message: "Your withdrawal of $1,250 has been sent.", time: "1 hour ago", type: "info", unread: true },
+    { id: 3, title: "New Competition", message: "Weekly trading competition starts tomorrow.", time: "3 hours ago", type: "event", unread: false },
+    { id: 4, title: "KYC Reminder", message: "Please complete your KYC verification.", time: "1 day ago", type: "warning", unread: false },
+  ];
 
   const allMenuItems = [...mainMenuItems, ...earningsMenuItems, ...accountMenuItems, ...supportMenuItems];
 
@@ -284,14 +294,14 @@ export default function DashboardLayout() {
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className={`lg:hidden fixed inset-0 ${isDark ? "bg-black/70" : "bg-black/50"} backdrop-blur-md z-40`}
+          className={`lg:hidden fixed inset-0 ${isDark ? "bg-black/70" : "bg-black/50"} backdrop-blur-md z-[150]`}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Mobile Sidebar */}
       <aside
-        className={`lg:hidden fixed inset-y-0 left-0 w-72 ${isDark ? "bg-[#0a0a0a]/95" : "bg-white/95"} backdrop-blur-xl border-r ${colors.border} z-50 transform transition-transform duration-300 ${
+        className={`lg:hidden fixed inset-y-0 left-0 w-72 ${isDark ? "bg-[#0a0a0a]/95" : "bg-white/95"} backdrop-blur-xl border-r ${colors.border} z-[200] transform transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -379,7 +389,7 @@ export default function DashboardLayout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden overflow-y-auto relative z-[50]">
         {/* Top Header with Glassmorphism */}
-        <header className={`sticky top-0 z-30 ${isDark ? "bg-[#0a0a0a]/70" : "bg-white/70"} backdrop-blur-xl border-b ${colors.border}`}>
+        <header className={`sticky top-0 z-[120] ${isDark ? "bg-[#0a0a0a]/70" : "bg-white/70"} backdrop-blur-xl border-b ${colors.border}`}>
           <div className="flex items-center justify-between px-4 lg:px-6 py-3">
             {/* Mobile Menu Button */}
             <button
@@ -407,21 +417,141 @@ export default function DashboardLayout() {
                 {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
               </button>
 
-              {/* Notifications */}
-              <button className={`relative p-2.5 ${colors.textSecondary} hover:text-[#FFD700] hover:bg-[#FFD700]/10 rounded-xl transition-all duration-300 group`}>
-                <FiBell size={20} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FFD700] rounded-full animate-pulse shadow-[0_0_8px_rgba(255,215,0,0.5)]" />
-              </button>
+              {/* Notifications Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => { setNotificationOpen(!notificationOpen); setProfileOpen(false); }}
+                  className={`relative p-2.5 ${colors.textSecondary} hover:text-[#FFD700] hover:bg-[#FFD700]/10 rounded-xl transition-all duration-300 ${notificationOpen ? "text-[#FFD700] bg-[#FFD700]/10" : ""}`}
+                >
+                  <FiBell size={20} />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FFD700] rounded-full animate-pulse shadow-[0_0_8px_rgba(255,215,0,0.5)]" />
+                </button>
 
-              {/* User Profile */}
-              <div className={`flex items-center gap-3 pl-3 ml-2 border-l ${colors.border}`}>
-                <div className="hidden sm:block text-right">
-                  <p className={`text-sm font-medium ${colors.text}`}>John Trader</p>
-                  <p className="text-xs bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent font-medium">Funded Trader</p>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] transition-all duration-300 cursor-pointer">
-                  <FiUser className="text-black" size={18} />
-                </div>
+                {/* Notification Panel */}
+                {notificationOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[150]" onClick={() => setNotificationOpen(false)} />
+                    <div className={`absolute right-0 mt-2 w-80 sm:w-96 ${isDark ? "bg-[#0a0a0a]/95" : "bg-white/95"} backdrop-blur-xl rounded-2xl border ${colors.border} shadow-[0_20px_50px_rgba(0,0,0,0.4)] z-[200] overflow-hidden`}>
+                      <div className={`px-4 py-3 border-b ${colors.border} flex items-center justify-between`}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center border border-[#FFD700]/30">
+                            <FiBell className="text-[#FFD700]" size={14} />
+                          </div>
+                          <span className={`font-semibold ${colors.text}`}>Notifications</span>
+                        </div>
+                        <span className="text-xs px-2 py-0.5 bg-[#FFD700]/20 text-[#FFD700] rounded-full font-medium">{notifications.filter(n => n.unread).length} new</span>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {notifications.map((notif) => (
+                          <div key={notif.id} className={`px-4 py-3 border-b ${colors.border} hover:bg-[#FFD700]/5 transition-all cursor-pointer ${notif.unread ? (isDark ? "bg-[#FFD700]/5" : "bg-[#FFD700]/10") : ""}`}>
+                            <div className="flex items-start gap-3">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                notif.type === "success" ? "bg-green-500/20 text-green-400" :
+                                notif.type === "warning" ? "bg-orange-500/20 text-orange-400" :
+                                notif.type === "event" ? "bg-purple-500/20 text-purple-400" :
+                                "bg-blue-500/20 text-blue-400"
+                              }`}>
+                                {notif.type === "success" ? <FiAward size={18} /> :
+                                 notif.type === "warning" ? <FiShield size={18} /> :
+                                 notif.type === "event" ? <FiCalendar size={18} /> :
+                                 <FiCreditCard size={18} />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className={`text-sm font-semibold ${colors.text} truncate`}>{notif.title}</p>
+                                  {notif.unread && <div className="w-2 h-2 rounded-full bg-[#FFD700]" />}
+                                </div>
+                                <p className={`text-xs ${colors.textSecondary} mt-0.5 line-clamp-2`}>{notif.message}</p>
+                                <p className="text-[10px] text-[#FFD700]/70 mt-1">{notif.time}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className={`px-4 py-3 border-t ${colors.border}`}>
+                        <button className="w-full py-2 text-sm font-medium text-[#FFD700] hover:bg-[#FFD700]/10 rounded-xl transition-all">
+                          View All Notifications
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* User Profile Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => { setProfileOpen(!profileOpen); setNotificationOpen(false); }}
+                  className={`flex items-center gap-3 pl-3 ml-2 border-l ${colors.border} cursor-pointer hover:opacity-90 transition-all`}
+                >
+                  <div className="hidden sm:block text-right">
+                    <p className={`text-sm font-medium ${colors.text}`}>John Trader</p>
+                    <p className="text-xs bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent font-medium">Funded Trader</p>
+                  </div>
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] transition-all duration-300 ${profileOpen ? "ring-2 ring-[#FFD700] ring-offset-2 ring-offset-[#0a0a0a]" : ""}`}>
+                    <FiUser className="text-black" size={18} />
+                  </div>
+                </button>
+
+                {/* Profile Dropdown Panel */}
+                {profileOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[150]" onClick={() => setProfileOpen(false)} />
+                    <div className={`absolute right-0 mt-2 w-72 ${isDark ? "bg-[#0a0a0a]/95" : "bg-white/95"} backdrop-blur-xl rounded-2xl border ${colors.border} shadow-[0_20px_50px_rgba(0,0,0,0.4)] z-[200] overflow-hidden`}>
+                      {/* Profile Header */}
+                      <div className={`px-4 py-4 border-b ${colors.border} bg-gradient-to-r ${isDark ? "from-[#FFD700]/10 to-transparent" : "from-[#FFD700]/20 to-transparent"}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.4)]">
+                            <FiUser className="text-black" size={24} />
+                          </div>
+                          <div>
+                            <p className={`font-bold ${colors.text}`}>John Trader</p>
+                            <p className="text-sm bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent font-semibold">Funded Trader</p>
+                            <p className={`text-xs ${colors.textSecondary} mt-0.5`}>john@example.com</p>
+                          </div>
+                        </div>
+                        {/* Account Balance */}
+                        <div className={`mt-3 p-3 rounded-xl ${isDark ? "bg-[#111]" : "bg-gray-100"} border ${colors.border}`}>
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs ${colors.textSecondary}`}>Account Balance</span>
+                            <span className="text-lg font-bold text-[#FFD700]">$52,847.50</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Menu Items */}
+                      <div className="p-2">
+                        {[
+                          { icon: FiUser, label: "My Profile", id: "profile" },
+                          { icon: FiSettings, label: "Settings", id: "settings" },
+                          { icon: FiShield, label: "KYC Verification", id: "kyc" },
+                          { icon: FiCreditCard, label: "Billing", id: "billing" },
+                          { icon: FiHelpCircle, label: "Help Center", id: "help" },
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => { setActiveTab(item.id); setProfileOpen(false); }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl ${colors.textSecondary} hover:text-[#FFD700] hover:bg-[#FFD700]/10 transition-all`}
+                          >
+                            <item.icon size={18} />
+                            <span className="text-sm font-medium">{item.label}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Sign Out */}
+                      <div className={`p-2 border-t ${colors.border}`}>
+                        <Link
+                          href="/signin"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-all"
+                        >
+                          <FiLogOut size={18} />
+                          <span className="text-sm font-medium">Sign Out</span>
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ import { PropFirmCompany } from "./propfirm-comparison";
 const PropfirmFeatures = ({ company }: { company: PropFirmCompany }) => {
   return (
     <div className=" overflow-x-auto">
-      <div className="grid grid-cols-1 gap-3 min-w-[650px] border border-[#FFD700] rounded-2xl px-3">
+      <div className="grid grid-cols-1 gap-3 min-w-[500px] sm:min-w-[650px] border border-[#FFD700] rounded-2xl px-3">
         <div className=" h-[70px] lg:h-[85px] rounded-lg grid grid-cols-4 items-center">
           <div></div>
           {company.companies.map((company, i) => (
@@ -32,7 +32,7 @@ const PropfirmFeatures = ({ company }: { company: PropFirmCompany }) => {
                 {service.name}
               </span>
             </div>
-            <div className="w-max lg:w-full h-[40px] lg:h-[60px] flex items-center justify-center rounded-2xl border border-[#FFD700] text-center text-[#ffd700]">
+            <div className="w-full h-[40px] lg:h-[60px] flex items-center justify-center rounded-2xl border border-[#FFD700] text-center text-[#ffd700]">
               <span className="font-semibold text-sm ">
                 {typeof service.values.value1 == "string" ? (
                   service.values.value1
@@ -43,7 +43,7 @@ const PropfirmFeatures = ({ company }: { company: PropFirmCompany }) => {
                 )}
               </span>
             </div>
-            <div className="text-centerw-max lg:w-full h-[40px] lg:h-[60px] flex items-center justify-center">
+            <div className="text-center w-full h-[40px] lg:h-[60px] flex items-center justify-center">
               <span className="text-sm font-semibold text-[#CCCCCC]">
                 {typeof service.values.value2 == "string" ? (
                   service.values.value2
@@ -54,7 +54,7 @@ const PropfirmFeatures = ({ company }: { company: PropFirmCompany }) => {
                 )}
               </span>
             </div>
-            <div className="text-center w-max lg:w-full h-[40px] lg:h-[60px] flex items-center justify-center">
+            <div className="text-center w-full h-[40px] lg:h-[60px] flex items-center justify-center">
               <span className="text-sm font-semibold text-[#CCCCCC]">
                 {typeof service.values.value3 == "string" ? (
                   service.values.value3

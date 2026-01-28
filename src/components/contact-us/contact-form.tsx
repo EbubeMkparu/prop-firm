@@ -9,8 +9,8 @@ const ContactForm = () => {
   };
 
   return (
-    <section className="container flex justify-center items-center pt-64 lg:py-14 lg:pt-14">
-      <div className="p-5 lg:p-8 rounded-2xl border border-[#FFD700] border-solid   w-[95%] md:w-[350px] lg:w-[650px]">
+    <section className="container flex justify-center items-center pt-24 sm:pt-40 lg:py-14 lg:pt-14">
+      <div className="p-5 lg:p-8 rounded-2xl border border-[#FFD700] border-solid   w-[95%] md:w-[85%] lg:w-[650px]">
         <header>
           <h2 className="mb-5 text-2xl lg:text-3xl  font-bold text-center text-[white]">
             SEND US A MESSAGE!

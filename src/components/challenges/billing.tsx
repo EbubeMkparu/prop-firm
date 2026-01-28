@@ -8,7 +8,7 @@ import { FormFooter } from "../form/form-footer";
 const Billing = () => {
   return (
     <div>
-      <div className="flex  overflow-x-hidden overflow-y-hidden relative flex-col gap-10  pt-5 pb-6 w-full   rounded-2xl min-h-[720px] shadow-[rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0.05)_0px_1px_2px_0px]">
+      <div className="flex  overflow-x-hidden overflow-y-hidden relative flex-col gap-10  pt-5 pb-6 w-full   rounded-2xl min-h-[auto] sm:min-h-[720px] shadow-[rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0)_0px_0px_0px_0px,rgba(0,0,0,0.05)_0px_1px_2px_0px]">
         <h1 className="textx-2xl lg:text-3xl font-semibold relative pl-4">
           Billing Info
           <div className="absolute w-[8px] h-full bg-[#FFD700] rounded-e-2xl top-0 left-0"></div>
