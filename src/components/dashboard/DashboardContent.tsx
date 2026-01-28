@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback, useRef } from "react";
 import {
   FiTrendingUp, FiTrendingDown, FiActivity, FiX, FiCheckCircle, FiXCircle, FiMaximize2,
   FiTarget, FiDollarSign, FiBarChart2, FiZap, FiAlertTriangle,
   FiGlobe, FiAward, FiList, FiSliders, FiPercent, FiFileText, FiLink, FiSmartphone,
-  FiShield, FiArrowUp, FiArrowDown, FiRefreshCw
+  FiShield, FiArrowUp, FiArrowDown, FiRefreshCw, FiUsers, FiChevronDown, FiBell, FiMessageSquare, FiUser,
+  FiMoreHorizontal, FiPlus, FiHelpCircle, FiDownload, FiCreditCard
 } from "react-icons/fi";
 import PnLCalendar from "./PnLCalendar";
 
@@ -86,6 +87,14 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [chartHover, setChartHover] = useState<{ x: number; y: number; day: number; equity: number; pnl: number; percentGain: number } | null>(null);
 
+  // FAQ state
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+
+  // Support ticket state
+  const [ticketSubject, setTicketSubject] = useState("");
+  const [ticketMessage, setTicketMessage] = useState("");
+  const [ticketCategory, setTicketCategory] = useState("general");
+
   // Equity curve data points for smooth interpolation (daily data over 30 days)
   const equityData = useMemo(() => {
     const startBalance = 50000;
@@ -110,24 +119,48 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
     }));
   }, []);
 
-  // Handle smooth mouse tracking on chart
-  const handleChartMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Throttled mouse tracking for chart performance
+  const rafId = useRef<number | null>(null);
+  const lastDayIndex = useRef<number>(-1);
+
+  const handleChartMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Capture values immediately (React synthetic events get nullified after handler)
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
     const percentX = relativeX / rect.width;
     const dayIndex = Math.min(Math.max(Math.round(percentX * 29), 0), 29);
-    const data = equityData[dayIndex];
-    if (data) {
-      setChartHover({
-        x: percentX * 300, // SVG x coordinate
-        y: data.y,
-        day: data.day + 1,
-        equity: data.equity,
-        pnl: data.pnl,
-        percentGain: data.percentGain
+
+    // Only update if day changed (throttle by data point)
+    if (dayIndex !== lastDayIndex.current) {
+      // Cancel any pending animation frame
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+      }
+
+      rafId.current = requestAnimationFrame(() => {
+        lastDayIndex.current = dayIndex;
+        const data = equityData[dayIndex];
+        if (data) {
+          setChartHover({
+            x: percentX * 300,
+            y: data.y,
+            day: data.day + 1,
+            equity: data.equity,
+            pnl: data.pnl,
+            percentGain: data.percentGain
+          });
+        }
       });
     }
-  };
+  }, [equityData]);
+
+  const handleChartMouseLeave = useCallback(() => {
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+    }
+    lastDayIndex.current = -1;
+    setChartHover(null);
+  }, []);
 
   const currentBalance = equityData[equityData.length - 1]?.equity || 50000;
   const totalPnL = currentBalance - 50000;
@@ -146,30 +179,451 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
 
   // Render based on active tab
   if (activeTab === "accounts") {
+    // Account data
+    const accounts = [
+      {
+        id: "PZ-50K-001",
+        size: "$50,000",
+        type: "Evaluation",
+        status: "active",
+        phase: 1,
+        balance: 53120,
+        startBalance: 50000,
+        profit: 3120,
+        profitPercent: 6.24,
+        profitTarget: 10,
+        drawdown: 4.8,
+        maxDrawdown: 10,
+        dailyLoss: 2.1,
+        maxDailyLoss: 5,
+        daysActive: 12,
+        minTradingDays: 5,
+        trades: 47,
+        winRate: 68,
+        profitFactor: 2.34,
+        avgWin: 142.50,
+        avgLoss: 68.20,
+        riskReward: "1:2.1",
+        bestTrade: 485.00,
+        worstTrade: -165.00,
+        equity: [50000, 50200, 50650, 50400, 51200, 51800, 52100, 51900, 52400, 52800, 53120, 53120],
+        recentTrades: [
+          { pair: "EUR/USD", result: 145.00, time: "2h ago" },
+          { pair: "GBP/JPY", result: -68.00, time: "4h ago" },
+          { pair: "XAU/USD", result: 212.00, time: "6h ago" },
+        ]
+      },
+      {
+        id: "PZ-100K-002",
+        size: "$100,000",
+        type: "Funded",
+        status: "funded",
+        phase: 0,
+        balance: 108450,
+        startBalance: 100000,
+        profit: 8450,
+        profitPercent: 8.45,
+        profitTarget: 0,
+        drawdown: 3.2,
+        maxDrawdown: 10,
+        dailyLoss: 1.5,
+        maxDailyLoss: 5,
+        daysActive: 34,
+        minTradingDays: 0,
+        trades: 156,
+        winRate: 72,
+        profitFactor: 2.89,
+        avgWin: 198.50,
+        avgLoss: 72.30,
+        riskReward: "1:2.7",
+        bestTrade: 1250.00,
+        worstTrade: -320.00,
+        equity: [100000, 101200, 102800, 103400, 102900, 104500, 105200, 106800, 107400, 107100, 108000, 108450],
+        recentTrades: [
+          { pair: "NAS100", result: 420.00, time: "1h ago" },
+          { pair: "EUR/GBP", result: 85.00, time: "3h ago" },
+          { pair: "USD/JPY", result: -42.00, time: "5h ago" },
+        ]
+      },
+      {
+        id: "PZ-25K-003",
+        size: "$25,000",
+        type: "Evaluation",
+        status: "phase2",
+        phase: 2,
+        balance: 26250,
+        startBalance: 25000,
+        profit: 1250,
+        profitPercent: 5.0,
+        profitTarget: 5,
+        drawdown: 2.8,
+        maxDrawdown: 10,
+        dailyLoss: 0.8,
+        maxDailyLoss: 5,
+        daysActive: 8,
+        minTradingDays: 5,
+        trades: 28,
+        winRate: 64,
+        profitFactor: 1.95,
+        avgWin: 82.50,
+        avgLoss: 45.20,
+        riskReward: "1:1.8",
+        bestTrade: 210.00,
+        worstTrade: -95.00,
+        equity: [25000, 25100, 25350, 25500, 25400, 25700, 25900, 26100, 26250],
+        recentTrades: [
+          { pair: "GBP/USD", result: 95.00, time: "30m ago" },
+          { pair: "EUR/JPY", result: 62.00, time: "2h ago" },
+          { pair: "XAU/USD", result: -45.00, time: "4h ago" },
+        ]
+      },
+    ];
+
+    const getStatusBadge = (status: string, phase: number) => {
+      switch (status) {
+        case "active":
+          return { text: `PHASE ${phase}`, bg: "bg-blue-500/20", text_color: "text-blue-400", border: "border-blue-500/30" };
+        case "funded":
+          return { text: "FUNDED", bg: "bg-green-500/20", text_color: "text-green-400", border: "border-green-500/30" };
+        case "phase2":
+          return { text: "PHASE 2", bg: "bg-purple-500/20", text_color: "text-purple-400", border: "border-purple-500/30" };
+        case "failed":
+          return { text: "FAILED", bg: "bg-red-500/20", text_color: "text-red-400", border: "border-red-500/30" };
+        default:
+          return { text: "PENDING", bg: "bg-gray-500/20", text_color: "text-gray-400", border: "border-gray-500/30" };
+      }
+    };
+
+    // Summary calculations
+    const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+    const totalProfit = accounts.reduce((sum, acc) => sum + acc.profit, 0);
+    const avgWinRate = Math.round(accounts.reduce((sum, acc) => sum + acc.winRate, 0) / accounts.length);
+    const totalTrades = accounts.reduce((sum, acc) => sum + acc.trades, 0);
+
     return (
-      <div className="p-6 space-y-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Active Account Card */}
-          <div className="bg-gradient-to-br from-[#FFD700]/10 to-[#0a0a0a] rounded-2xl border border-[#FFD700]/30 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-[#FFD700] bg-[#FFD700]/20 px-2 py-1 rounded">ACTIVE</span>
-              <span className="text-xs text-gray-500">Phase 1</span>
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Portfolio Summary */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center">
+              <FiTrendingUp className="text-black" size={20} />
             </div>
-            <p className="text-3xl font-bold text-white mb-1">$50,000</p>
-            <p className="text-sm text-gray-400 mb-4">Evaluation Account</p>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm"><span className="text-gray-500">Profit</span><span className="text-green-500">+$3,120</span></div>
-              <div className="flex justify-between text-sm"><span className="text-gray-500">Drawdown</span><span className="text-white">4.8%</span></div>
-              <div className="flex justify-between text-sm"><span className="text-gray-500">Days Active</span><span className="text-white">12</span></div>
+            <div>
+              <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Portfolio Overview</h2>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>All your trading accounts at a glance</p>
             </div>
           </div>
-          {/* Add New Account Card */}
-          <div className="bg-[#0a0a0a] rounded-2xl border border-dashed border-[#333] p-6 flex flex-col items-center justify-center cursor-pointer hover:border-[#FFD700]/50 transition-colors">
-            <div className="w-12 h-12 rounded-full bg-[#111] flex items-center justify-center mb-3">
-              <span className="text-2xl text-gray-500">+</span>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Accounts */}
+            <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-[#FFD700]/10 flex items-center justify-center">
+                  <FiBarChart2 className="text-[#FFD700]" size={16} />
+                </div>
+                <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider`}>Accounts</span>
+              </div>
+              <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{accounts.length}</p>
+              <p className="text-xs text-green-500 mt-1">+1 funded</p>
             </div>
-            <p className="text-gray-400 font-medium">Add New Account</p>
-            <p className="text-xs text-gray-600 mt-1">Start a new challenge</p>
+
+            {/* Total Balance */}
+            <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <FiDollarSign className="text-green-500" size={16} />
+                </div>
+                <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider`}>Total Balance</span>
+              </div>
+              <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>${totalBalance.toLocaleString()}</p>
+              <p className="text-xs text-green-500 mt-1">+${totalProfit.toLocaleString()} profit</p>
+            </div>
+
+            {/* Average Win Rate */}
+            <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <FiTarget className="text-blue-500" size={16} />
+                </div>
+                <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider`}>Avg Win Rate</span>
+              </div>
+              <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{avgWinRate}%</p>
+              <p className="text-xs text-blue-400 mt-1">Across all accounts</p>
+            </div>
+
+            {/* Total Trades */}
+            <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <FiActivity className="text-purple-500" size={16} />
+                </div>
+                <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider`}>Total Trades</span>
+              </div>
+              <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{totalTrades}</p>
+              <p className="text-xs text-purple-400 mt-1">This month</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Cards */}
+        <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {accounts.map((account) => {
+            const statusBadge = getStatusBadge(account.status, account.phase);
+            const profitProgress = account.profitTarget > 0 ? (account.profitPercent / account.profitTarget) * 100 : 100;
+            const drawdownProgress = (account.drawdown / account.maxDrawdown) * 100;
+
+            // Generate sparkline path
+            const maxEquity = Math.max(...account.equity);
+            const minEquity = Math.min(...account.equity);
+            const equityRange = maxEquity - minEquity || 1;
+            const sparklinePath = account.equity.map((val, i) => {
+              const x = (i / (account.equity.length - 1)) * 100;
+              const y = 100 - ((val - minEquity) / equityRange) * 100;
+              return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+            }).join(' ');
+
+            return (
+              <div
+                key={account.id}
+                className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-white"} backdrop-blur-xl rounded-2xl border ${account.status === 'funded' ? 'border-green-500/30' : isDark ? 'border-[#FFD700]/20' : 'border-[#FFD700]/30'} overflow-hidden hover:shadow-[0_0_30px_rgba(255,215,0,0.1)] transition-all duration-300 group`}
+              >
+                {/* Account Header */}
+                <div className={`p-5 border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-100"}`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${statusBadge.bg} ${statusBadge.text_color} border ${statusBadge.border}`}>
+                          {statusBadge.text}
+                        </span>
+                        {account.status === 'funded' && (
+                          <span className="text-xs text-green-400 animate-pulse">● Live</span>
+                        )}
+                      </div>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} font-mono`}>{account.id}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{account.size}</p>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{account.type}</p>
+                    </div>
+                  </div>
+
+                  {/* Mini Equity Curve */}
+                  <div className={`h-12 ${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-lg p-2 overflow-hidden`}>
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
+                      <defs>
+                        <linearGradient id={`gradient-${account.id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor={account.profit >= 0 ? "#22c55e" : "#ef4444"} stopOpacity="0.3" />
+                          <stop offset="100%" stopColor={account.profit >= 0 ? "#22c55e" : "#ef4444"} stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d={`${sparklinePath} L 100 100 L 0 100 Z`}
+                        fill={`url(#gradient-${account.id})`}
+                      />
+                      <path
+                        d={sparklinePath}
+                        fill="none"
+                        stroke={account.profit >= 0 ? "#22c55e" : "#ef4444"}
+                        strokeWidth="2"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Balance & Profit */}
+                <div className="p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Current Balance</p>
+                      <p className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>${account.balance.toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>P&L</p>
+                      <p className={`text-xl font-bold ${account.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {account.profit >= 0 ? "+" : ""}{account.profitPercent.toFixed(2)}%
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Progress Bars */}
+                  {account.profitTarget > 0 && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className={isDark ? "text-gray-400" : "text-gray-500"}>Profit Target</span>
+                        <span className="text-[#FFD700]">{account.profitPercent.toFixed(2)}% / {account.profitTarget}%</span>
+                      </div>
+                      <div className={`h-2 ${isDark ? "bg-[#111]" : "bg-gray-100"} rounded-full overflow-hidden`}>
+                        <div
+                          className="h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] rounded-full transition-all duration-500"
+                          style={{ width: `${Math.min(profitProgress, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span className={isDark ? "text-gray-400" : "text-gray-500"}>Drawdown Used</span>
+                      <span className={account.drawdown > 7 ? "text-red-400" : account.drawdown > 5 ? "text-orange-400" : "text-green-400"}>
+                        {account.drawdown}% / {account.maxDrawdown}%
+                      </span>
+                    </div>
+                    <div className={`h-2 ${isDark ? "bg-[#111]" : "bg-gray-100"} rounded-full overflow-hidden`}>
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          account.drawdown > 7 ? "bg-red-500" : account.drawdown > 5 ? "bg-orange-500" : "bg-green-500"
+                        }`}
+                        style={{ width: `${drawdownProgress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-3 gap-3 pt-2">
+                    <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-3 text-center`}>
+                      <p className={`text-lg font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{account.winRate}%</p>
+                      <p className={`text-[10px] ${isDark ? "text-gray-500" : "text-gray-400"} uppercase`}>Win Rate</p>
+                    </div>
+                    <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-3 text-center`}>
+                      <p className={`text-lg font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{account.profitFactor}</p>
+                      <p className={`text-[10px] ${isDark ? "text-gray-500" : "text-gray-400"} uppercase`}>Profit Factor</p>
+                    </div>
+                    <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-3 text-center`}>
+                      <p className={`text-lg font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{account.trades}</p>
+                      <p className={`text-[10px] ${isDark ? "text-gray-500" : "text-gray-400"} uppercase`}>Trades</p>
+                    </div>
+                  </div>
+
+                  {/* Detailed Stats Expandable */}
+                  <div className={`${isDark ? "bg-[#111]/50" : "bg-gray-50"} rounded-xl p-4 space-y-3`}>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Avg Win</span>
+                        <span className="text-green-500 font-medium">${account.avgWin.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Avg Loss</span>
+                        <span className="text-red-400 font-medium">-${account.avgLoss.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Best Trade</span>
+                        <span className="text-green-500 font-medium">+${account.bestTrade.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Worst Trade</span>
+                        <span className="text-red-400 font-medium">${account.worstTrade.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>R:R Ratio</span>
+                        <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{account.riskReward}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className={isDark ? "text-gray-500" : "text-gray-400"}>Days Active</span>
+                        <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{account.daysActive}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Trades */}
+                  <div>
+                    <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider mb-2`}>Recent Trades</p>
+                    <div className="space-y-2">
+                      {account.recentTrades.map((trade, i) => (
+                        <div key={i} className={`flex items-center justify-between ${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-lg px-3 py-2`}>
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${trade.result >= 0 ? "bg-green-500" : "bg-red-500"}`} />
+                            <span className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{trade.pair}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`text-sm font-semibold ${trade.result >= 0 ? "text-green-500" : "text-red-400"}`}>
+                              {trade.result >= 0 ? "+" : ""}{trade.result.toFixed(2)}
+                            </span>
+                            <span className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>{trade.time}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-2">
+                    <button className="flex-1 py-2.5 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-semibold rounded-xl hover:shadow-[0_0_20px_rgba(255,215,0,0.3)] transition-all duration-300 text-sm">
+                      View Details
+                    </button>
+                    <button className={`px-4 py-2.5 ${isDark ? "bg-[#111] border-[#1a1a1a] text-white hover:bg-[#1a1a1a]" : "bg-gray-100 border-gray-200 text-gray-900 hover:bg-gray-200"} border rounded-xl transition-colors`}>
+                      <FiMoreHorizontal size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Add New Account Card */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border-2 border-dashed ${isDark ? "border-[#1a1a1a] hover:border-[#FFD700]/50" : "border-gray-200 hover:border-[#FFD700]"} p-6 flex flex-col items-center justify-center min-h-[400px] cursor-pointer transition-all duration-300 group hover:shadow-[0_0_30px_rgba(255,215,0,0.1)]`}>
+            <div className={`w-20 h-20 rounded-2xl ${isDark ? "bg-[#111]" : "bg-gray-100"} flex items-center justify-center mb-4 group-hover:bg-[#FFD700]/10 transition-colors`}>
+              <FiPlus className={`${isDark ? "text-gray-500" : "text-gray-400"} group-hover:text-[#FFD700] transition-colors`} size={32} />
+            </div>
+            <p className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-2`}>Start New Challenge</p>
+            <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"} text-center mb-4`}>Choose from $5K to $200K account sizes</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {["$5K", "$10K", "$25K", "$50K", "$100K", "$200K"].map((size) => (
+                <span key={size} className={`text-xs px-3 py-1 rounded-full ${isDark ? "bg-[#111] text-gray-400" : "bg-gray-100 text-gray-500"} group-hover:bg-[#FFD700]/10 group-hover:text-[#FFD700] transition-colors`}>
+                  {size}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Comparison */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>Account Comparison</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className={`${isDark ? "border-[#1a1a1a]" : "border-gray-200"} border-b`}>
+                  <th className={`text-left py-3 ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>Account</th>
+                  <th className={`text-right py-3 ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>Balance</th>
+                  <th className={`text-right py-3 ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>P&L</th>
+                  <th className={`text-right py-3 ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>Win Rate</th>
+                  <th className={`text-right py-3 ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>Profit Factor</th>
+                  <th className={`text-right py-3 ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>Drawdown</th>
+                  <th className={`text-right py-3 ${isDark ? "text-gray-500" : "text-gray-400"} font-medium`}>Trades</th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.map((account) => {
+                  const statusBadge = getStatusBadge(account.status, account.phase);
+                  return (
+                    <tr key={account.id} className={`${isDark ? "border-[#1a1a1a] hover:bg-[#111]/50" : "border-gray-100 hover:bg-gray-50"} border-b transition-colors`}>
+                      <td className="py-4">
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs font-bold px-2 py-1 rounded ${statusBadge.bg} ${statusBadge.text_color}`}>
+                            {statusBadge.text}
+                          </span>
+                          <div>
+                            <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{account.size}</p>
+                            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} font-mono`}>{account.id}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={`text-right py-4 font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>${account.balance.toLocaleString()}</td>
+                      <td className={`text-right py-4 font-semibold ${account.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
+                        {account.profit >= 0 ? "+" : ""}{account.profitPercent.toFixed(2)}%
+                      </td>
+                      <td className={`text-right py-4 ${isDark ? "text-white" : "text-gray-900"}`}>{account.winRate}%</td>
+                      <td className={`text-right py-4 ${isDark ? "text-white" : "text-gray-900"}`}>{account.profitFactor}</td>
+                      <td className={`text-right py-4 ${account.drawdown > 7 ? "text-red-400" : account.drawdown > 5 ? "text-orange-400" : "text-green-400"}`}>
+                        {account.drawdown}%
+                      </td>
+                      <td className={`text-right py-4 ${isDark ? "text-white" : "text-gray-900"}`}>{account.trades}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -177,23 +631,397 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
   }
 
   if (activeTab === "challenges") {
+    // Challenge data
+    const challenges = [
+      {
+        size: "$5,000",
+        price: 49,
+        originalPrice: 79,
+        popular: false,
+        phase1Target: 8,
+        phase2Target: 5,
+        maxDrawdown: 10,
+        dailyLoss: 5,
+        minDays: 5,
+        maxDays: "Unlimited",
+        leverage: "1:100",
+        profitSplit: 80,
+        scaling: true,
+        newsTrading: true,
+        weekendHolding: true,
+        eaAllowed: true,
+        resetDiscount: 20,
+        passRate: 32,
+      },
+      {
+        size: "$10,000",
+        price: 89,
+        originalPrice: 129,
+        popular: false,
+        phase1Target: 8,
+        phase2Target: 5,
+        maxDrawdown: 10,
+        dailyLoss: 5,
+        minDays: 5,
+        maxDays: "Unlimited",
+        leverage: "1:100",
+        profitSplit: 80,
+        scaling: true,
+        newsTrading: true,
+        weekendHolding: true,
+        eaAllowed: true,
+        resetDiscount: 20,
+        passRate: 35,
+      },
+      {
+        size: "$25,000",
+        price: 189,
+        originalPrice: 279,
+        popular: false,
+        phase1Target: 8,
+        phase2Target: 5,
+        maxDrawdown: 10,
+        dailyLoss: 5,
+        minDays: 5,
+        maxDays: "Unlimited",
+        leverage: "1:100",
+        profitSplit: 80,
+        scaling: true,
+        newsTrading: true,
+        weekendHolding: true,
+        eaAllowed: true,
+        resetDiscount: 20,
+        passRate: 38,
+      },
+      {
+        size: "$50,000",
+        price: 299,
+        originalPrice: 449,
+        popular: true,
+        phase1Target: 8,
+        phase2Target: 5,
+        maxDrawdown: 10,
+        dailyLoss: 5,
+        minDays: 5,
+        maxDays: "Unlimited",
+        leverage: "1:100",
+        profitSplit: 85,
+        scaling: true,
+        newsTrading: true,
+        weekendHolding: true,
+        eaAllowed: true,
+        resetDiscount: 25,
+        passRate: 41,
+      },
+      {
+        size: "$100,000",
+        price: 499,
+        originalPrice: 749,
+        popular: true,
+        phase1Target: 8,
+        phase2Target: 5,
+        maxDrawdown: 10,
+        dailyLoss: 5,
+        minDays: 5,
+        maxDays: "Unlimited",
+        leverage: "1:100",
+        profitSplit: 85,
+        scaling: true,
+        newsTrading: true,
+        weekendHolding: true,
+        eaAllowed: true,
+        resetDiscount: 25,
+        passRate: 44,
+      },
+      {
+        size: "$200,000",
+        price: 899,
+        originalPrice: 1299,
+        popular: false,
+        phase1Target: 8,
+        phase2Target: 5,
+        maxDrawdown: 10,
+        dailyLoss: 5,
+        minDays: 5,
+        maxDays: "Unlimited",
+        leverage: "1:100",
+        profitSplit: 90,
+        scaling: true,
+        newsTrading: true,
+        weekendHolding: true,
+        eaAllowed: true,
+        resetDiscount: 30,
+        passRate: 47,
+      },
+    ];
+
     return (
-      <div className="p-6 space-y-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {["$5K", "$10K", "$25K", "$50K", "$100K", "$200K"].map((size, i) => (
-            <div key={i} className="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-6 hover:border-[#FFD700]/30 transition-colors">
-              <p className="text-2xl font-bold text-white mb-1">{size}</p>
-              <p className="text-sm text-gray-400 mb-4">Challenge Account</p>
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm"><span className="text-gray-500">Profit Target</span><span className="text-[#FFD700]">10%</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-500">Max Drawdown</span><span className="text-white">10%</span></div>
-                <div className="flex justify-between text-sm"><span className="text-gray-500">Daily Loss</span><span className="text-white">5%</span></div>
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header Section */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.3)]">
+                <FiAward className="text-black" size={28} />
               </div>
-              <button className="w-full py-2.5 bg-[#FFD700] text-black font-semibold rounded-lg hover:bg-[#FFD700]/90 transition-colors">
-                Get Started
-              </button>
+              <div>
+                <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Trading Challenges</h2>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Prove your skills and get funded up to $200,000</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <div className={`flex items-center gap-2 px-4 py-2 ${isDark ? "bg-green-500/10" : "bg-green-50"} rounded-xl border ${isDark ? "border-green-500/20" : "border-green-200"}`}>
+                <FiCheckCircle className="text-green-500" size={16} />
+                <span className={`text-sm ${isDark ? "text-green-400" : "text-green-600"}`}>Instant Payouts</span>
+              </div>
+              <div className={`flex items-center gap-2 px-4 py-2 ${isDark ? "bg-blue-500/10" : "bg-blue-50"} rounded-xl border ${isDark ? "border-blue-500/20" : "border-blue-200"}`}>
+                <FiZap className="text-blue-500" size={16} />
+                <span className={`text-sm ${isDark ? "text-blue-400" : "text-blue-600"}`}>Up to 90% Profit Split</span>
+              </div>
+              <div className={`flex items-center gap-2 px-4 py-2 ${isDark ? "bg-purple-500/10" : "bg-purple-50"} rounded-xl border ${isDark ? "border-purple-500/20" : "border-purple-200"}`}>
+                <FiTrendingUp className="text-purple-500" size={16} />
+                <span className={`text-sm ${isDark ? "text-purple-400" : "text-purple-600"}`}>Scaling Program</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* How It Works */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>How It Works</h3>
+          <div className="grid md:grid-cols-4 gap-4">
+            {[
+              { step: 1, title: "Choose Challenge", desc: "Select your account size", icon: FiTarget },
+              { step: 2, title: "Pass Phase 1", desc: "Hit 8% profit target", icon: FiTrendingUp },
+              { step: 3, title: "Pass Phase 2", desc: "Hit 5% profit target", icon: FiCheckCircle },
+              { step: 4, title: "Get Funded", desc: "Trade with real capital", icon: FiDollarSign },
+            ].map((item, i) => (
+              <div key={i} className="relative">
+                <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FFD700]/20 to-[#FFA500]/10 flex items-center justify-center mx-auto mb-3 border border-[#FFD700]/30">
+                    <item.icon className="text-[#FFD700]" size={20} />
+                  </div>
+                  <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-[#FFD700] text-black text-xs font-bold flex items-center justify-center">
+                    {item.step}
+                  </div>
+                  <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>{item.title}</p>
+                  <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{item.desc}</p>
+                </div>
+                {i < 3 && (
+                  <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 text-[#FFD700]/30">
+                    <FiChevronDown className="rotate-[-90deg]" size={16} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Challenge Cards */}
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {challenges.map((challenge, i) => (
+            <div
+              key={i}
+              className={`relative ${isDark ? "bg-[#0a0a0a]/80" : "bg-white"} backdrop-blur-xl rounded-2xl border ${
+                challenge.popular
+                  ? "border-[#FFD700]/50 shadow-[0_0_30px_rgba(255,215,0,0.15)]"
+                  : isDark ? "border-[#1a1a1a]" : "border-gray-200"
+              } overflow-hidden group hover:shadow-[0_0_40px_rgba(255,215,0,0.1)] transition-all duration-300`}
+            >
+              {/* Popular Badge */}
+              {challenge.popular && (
+                <div className="absolute top-0 right-0">
+                  <div className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black text-xs font-bold px-4 py-1 rounded-bl-xl">
+                    MOST POPULAR
+                  </div>
+                </div>
+              )}
+
+              {/* Header */}
+              <div className={`p-5 border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-100"}`}>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{challenge.size}</p>
+                    <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>2-Phase Challenge</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-baseline gap-1">
+                      <span className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"} line-through`}>${challenge.originalPrice}</span>
+                      <span className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>${challenge.price}</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Save {Math.round((1 - challenge.price / challenge.originalPrice) * 100)}%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Phase Breakdown */}
+              <div className="p-5 space-y-4">
+                {/* Phase 1 */}
+                <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30`}>
+                      PHASE 1
+                    </span>
+                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Evaluation</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
+                      <p className="text-[#FFD700] font-bold">{challenge.phase1Target}%</p>
+                    </div>
+                    <div>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
+                      <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold`}>{challenge.minDays}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Phase 2 */}
+                <div className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30`}>
+                      PHASE 2
+                    </span>
+                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Verification</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
+                      <p className="text-[#FFD700] font-bold">{challenge.phase2Target}%</p>
+                    </div>
+                    <div>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
+                      <p className={`${isDark ? "text-white" : "text-gray-900"} font-bold`}>{challenge.minDays}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rules Grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Max Drawdown</span>
+                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.maxDrawdown}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Daily Loss</span>
+                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.dailyLoss}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Leverage</span>
+                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.leverage}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={isDark ? "text-gray-500" : "text-gray-400"}>Time Limit</span>
+                    <span className={`${isDark ? "text-white" : "text-gray-900"} font-medium`}>{challenge.maxDays}</span>
+                  </div>
+                </div>
+
+                {/* Features */}
+                <div className={`${isDark ? "bg-[#111]/50" : "bg-gray-50"} rounded-xl p-4`}>
+                  <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider mb-3`}>Features</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: "News Trading", enabled: challenge.newsTrading },
+                      { label: "Weekend Holding", enabled: challenge.weekendHolding },
+                      { label: "EA/Bots Allowed", enabled: challenge.eaAllowed },
+                      { label: "Scaling Plan", enabled: challenge.scaling },
+                    ].map((feature, j) => (
+                      <div key={j} className="flex items-center gap-2">
+                        {feature.enabled ? (
+                          <FiCheckCircle className="text-green-500" size={14} />
+                        ) : (
+                          <FiXCircle className="text-red-400" size={14} />
+                        )}
+                        <span className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>{feature.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Profit Split & Stats */}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/20">
+                      <span className="text-green-500 font-bold text-sm">{challenge.profitSplit}%</span>
+                    </div>
+                    <div>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Profit Split</p>
+                      <p className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Up to {challenge.profitSplit}%</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Pass Rate</p>
+                    <div className="flex items-center gap-1">
+                      <div className="w-16 h-2 bg-[#111] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] rounded-full"
+                          style={{ width: `${challenge.passRate}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{challenge.passRate}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <button className={`w-full py-3 ${
+                  challenge.popular
+                    ? "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-[0_0_20px_rgba(255,215,0,0.3)] hover:shadow-[0_0_30px_rgba(255,215,0,0.5)]"
+                    : isDark ? "bg-[#111] text-white border border-[#1a1a1a] hover:border-[#FFD700]/50" : "bg-gray-100 text-gray-900 border border-gray-200 hover:border-[#FFD700]"
+                } font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2`}>
+                  <span>Start Challenge</span>
+                  <FiArrowUp className="rotate-45" size={16} />
+                </button>
+
+                {/* Reset Option */}
+                <p className={`text-center text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>
+                  {challenge.resetDiscount}% discount on reset
+                </p>
+              </div>
             </div>
           ))}
+        </div>
+
+        {/* Benefits Section */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>Why Choose Pipzen?</h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { icon: FiZap, title: "Fast Payouts", desc: "Get paid within 24 hours of requesting withdrawal" },
+              { icon: FiShield, title: "No Hidden Fees", desc: "One-time fee, no monthly charges or commissions" },
+              { icon: FiTrendingUp, title: "Scale to $2M", desc: "Grow your account with our scaling program" },
+              { icon: FiUsers, title: "24/7 Support", desc: "Dedicated support team ready to help anytime" },
+            ].map((benefit, i) => (
+              <div key={i} className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+                <div className="w-10 h-10 rounded-xl bg-[#FFD700]/10 flex items-center justify-center mb-3 border border-[#FFD700]/20">
+                  <benefit.icon className="text-[#FFD700]" size={18} />
+                </div>
+                <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>{benefit.title}</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{benefit.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* FAQ Teaser */}
+        <div className={`${isDark ? "bg-gradient-to-r from-[#FFD700]/10 to-[#FFA500]/5" : "bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 flex flex-col md:flex-row items-center justify-between gap-4`}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#FFD700]/20 flex items-center justify-center">
+              <FiHelpCircle className="text-[#FFD700]" size={24} />
+            </div>
+            <div>
+              <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Have questions?</p>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Check our FAQ or contact support for help</p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button className={`px-5 py-2.5 ${isDark ? "bg-[#111] text-white border-[#1a1a1a]" : "bg-white text-gray-900 border-gray-200"} border rounded-xl font-medium hover:border-[#FFD700]/50 transition-colors`}>
+              View FAQ
+            </button>
+            <button className="px-5 py-2.5 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black rounded-xl font-medium hover:shadow-[0_0_20px_rgba(255,215,0,0.3)] transition-all">
+              Contact Support
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -217,33 +1045,293 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
   }
 
   if (activeTab === "leaderboard") {
+    // Leaderboard data
+    const topTraders = [
+      { rank: 1, name: "CryptoWolf", country: "🇺🇸", avatar: "CW", profit: 28450, returnPct: 28.45, winRate: 78, trades: 156, accountSize: "$100K", streak: 12, badge: "Diamond" },
+      { rank: 2, name: "ForexKing", country: "🇬🇧", avatar: "FK", profit: 22180, returnPct: 22.18, winRate: 74, trades: 203, accountSize: "$100K", streak: 8, badge: "Platinum" },
+      { rank: 3, name: "GoldMaster", country: "🇩🇪", avatar: "GM", profit: 19650, returnPct: 19.65, winRate: 71, trades: 178, accountSize: "$100K", streak: 6, badge: "Platinum" },
+      { rank: 4, name: "ScalpNinja", country: "🇯🇵", avatar: "SN", profit: 16890, returnPct: 16.89, winRate: 82, trades: 412, accountSize: "$100K", streak: 15, badge: "Gold" },
+      { rank: 5, name: "SwingTrader", country: "🇦🇺", avatar: "ST", profit: 14520, returnPct: 14.52, winRate: 68, trades: 89, accountSize: "$100K", streak: 4, badge: "Gold" },
+      { rank: 6, name: "PipHunter", country: "🇨🇦", avatar: "PH", profit: 12340, returnPct: 12.34, winRate: 65, trades: 267, accountSize: "$100K", streak: 3, badge: "Silver" },
+      { rank: 7, name: "TrendRider", country: "🇫🇷", avatar: "TR", profit: 11280, returnPct: 11.28, winRate: 63, trades: 145, accountSize: "$100K", streak: 5, badge: "Silver" },
+      { rank: 8, name: "AlphaTrader", country: "🇸🇬", avatar: "AT", profit: 9870, returnPct: 9.87, winRate: 61, trades: 198, accountSize: "$100K", streak: 2, badge: "Silver" },
+      { rank: 9, name: "MarketMaven", country: "🇳🇱", avatar: "MM", profit: 8650, returnPct: 8.65, winRate: 59, trades: 134, accountSize: "$100K", streak: 4, badge: "Bronze" },
+      { rank: 10, name: "ChartMaster", country: "🇨🇭", avatar: "CM", profit: 7420, returnPct: 7.42, winRate: 57, trades: 112, accountSize: "$100K", streak: 1, badge: "Bronze" },
+    ];
+
+    const yourPosition = { rank: 47, name: "You", profit: 3120, returnPct: 6.24, winRate: 68, trades: 47 };
+
+    const getBadgeColor = (badge: string) => {
+      switch (badge) {
+        case "Diamond": return { bg: "bg-cyan-500/20", text: "text-cyan-400", border: "border-cyan-500/30" };
+        case "Platinum": return { bg: "bg-purple-500/20", text: "text-purple-400", border: "border-purple-500/30" };
+        case "Gold": return { bg: "bg-[#FFD700]/20", text: "text-[#FFD700]", border: "border-[#FFD700]/30" };
+        case "Silver": return { bg: "bg-gray-400/20", text: "text-gray-300", border: "border-gray-400/30" };
+        default: return { bg: "bg-orange-500/20", text: "text-orange-400", border: "border-orange-500/30" };
+      }
+    };
+
+    const getRankStyle = (rank: number) => {
+      if (rank === 1) return { bg: "from-[#FFD700] to-[#FFA500]", shadow: "shadow-[0_0_30px_rgba(255,215,0,0.4)]", size: "w-20 h-20" };
+      if (rank === 2) return { bg: "from-gray-300 to-gray-400", shadow: "shadow-[0_0_20px_rgba(192,192,192,0.3)]", size: "w-16 h-16" };
+      if (rank === 3) return { bg: "from-orange-400 to-orange-600", shadow: "shadow-[0_0_20px_rgba(205,127,50,0.3)]", size: "w-14 h-14" };
+      return { bg: "from-gray-600 to-gray-700", shadow: "", size: "w-10 h-10" };
+    };
+
     return (
-      <div className="p-6 space-y-6">
-        <div className="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] overflow-hidden">
-          <div className="p-4 border-b border-[#1a1a1a]">
-            <h3 className="text-lg font-semibold text-white">Top Traders This Month</h3>
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.3)]">
+                <FiAward className="text-black" size={28} />
+              </div>
+              <div>
+                <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Global Leaderboard</h2>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Top performers across all funded accounts</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {["Daily", "Weekly", "Monthly", "All Time"].map((period, i) => (
+                <button
+                  key={period}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                    i === 2
+                      ? "bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black shadow-[0_0_15px_rgba(255,215,0,0.3)]"
+                      : isDark ? "bg-[#111] text-gray-400 hover:text-white border border-[#1a1a1a]" : "bg-gray-100 text-gray-600 hover:text-gray-900 border border-gray-200"
+                  }`}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="divide-y divide-[#1a1a1a]">
-            {[
-              { rank: 1, name: "TraderPro", profit: "+$12,450", return: "+24.9%" },
-              { rank: 2, name: "FXMaster", profit: "+$9,820", return: "+19.6%" },
-              { rank: 3, name: "GoldHunter", profit: "+$8,340", return: "+16.7%" },
-              { rank: 4, name: "ScalpKing", profit: "+$7,210", return: "+14.4%" },
-              { rank: 5, name: "SwingTrader", profit: "+$6,890", return: "+13.8%" },
-            ].map((trader) => (
-              <div key={trader.rank} className="flex items-center justify-between p-4 hover:bg-[#111] transition-colors">
-                <div className="flex items-center gap-4">
-                  <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${trader.rank <= 3 ? "bg-[#FFD700]/20 text-[#FFD700]" : "bg-[#111] text-gray-400"}`}>
-                    {trader.rank}
-                  </span>
-                  <span className="text-white font-medium">{trader.name}</span>
+        </div>
+
+        {/* Prize Pool Banner */}
+        <div className={`relative overflow-hidden ${isDark ? "bg-gradient-to-r from-[#FFD700]/10 via-[#0a0a0a] to-[#FFA500]/10" : "bg-gradient-to-r from-[#FFD700]/20 via-white to-[#FFA500]/20"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD700]/5 rounded-full blur-3xl" />
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-1`}>Monthly Prize Pool</p>
+              <p className={`text-4xl font-bold bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent`}>$25,000</p>
+              <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"} mt-1`}>Top 10 traders share the rewards</p>
+            </div>
+            <div className="flex gap-4">
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-white/80"} backdrop-blur-sm rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
+                <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>1,247</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Active Traders</p>
+              </div>
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-white/80"} backdrop-blur-sm rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} text-center`}>
+                <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>18 days</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Until Reset</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Top 3 Podium */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 pb-8`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-8 text-center`}>Top Performers</h3>
+          <div className="flex items-end justify-center gap-4 md:gap-8 pt-6">
+            {/* 2nd Place */}
+            <div className="flex flex-col items-center">
+              <div className={`${getRankStyle(2).size} rounded-2xl bg-gradient-to-br ${getRankStyle(2).bg} flex items-center justify-center ${getRankStyle(2).shadow} mb-3`}>
+                <span className="text-black font-bold text-lg">{topTraders[1].avatar}</span>
+              </div>
+              <span className="text-2xl mb-1">{topTraders[1].country}</span>
+              <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{topTraders[1].name}</p>
+              <p className="text-green-500 font-bold">+${topTraders[1].profit.toLocaleString()}</p>
+              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>+{topTraders[1].returnPct}%</p>
+              <div className={`mt-3 h-24 w-20 ${isDark ? "bg-gray-400/20" : "bg-gray-200"} rounded-t-xl flex items-center justify-center`}>
+                <span className="text-3xl font-bold text-gray-400">2</span>
+              </div>
+            </div>
+
+            {/* 1st Place */}
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
+                  <svg className="w-10 h-10 text-[#FFD700] drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
+                  </svg>
                 </div>
-                <div className="text-right">
-                  <p className="text-green-500 font-semibold">{trader.profit}</p>
-                  <p className="text-xs text-gray-500">{trader.return}</p>
+                <div className={`${getRankStyle(1).size} rounded-2xl bg-gradient-to-br ${getRankStyle(1).bg} flex items-center justify-center ${getRankStyle(1).shadow} mb-3`}>
+                  <span className="text-black font-bold text-2xl">{topTraders[0].avatar}</span>
                 </div>
               </div>
-            ))}
+              <span className="text-3xl mb-1">{topTraders[0].country}</span>
+              <p className={`font-bold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>{topTraders[0].name}</p>
+              <p className="text-green-500 font-bold text-xl">+${topTraders[0].profit.toLocaleString()}</p>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>+{topTraders[0].returnPct}%</p>
+              <div className={`mt-3 h-32 w-24 bg-gradient-to-b from-[#FFD700]/30 to-[#FFD700]/10 rounded-t-xl flex items-center justify-center border-t border-x border-[#FFD700]/30`}>
+                <span className="text-4xl font-bold text-[#FFD700]">1</span>
+              </div>
+            </div>
+
+            {/* 3rd Place */}
+            <div className="flex flex-col items-center">
+              <div className={`${getRankStyle(3).size} rounded-2xl bg-gradient-to-br ${getRankStyle(3).bg} flex items-center justify-center ${getRankStyle(3).shadow} mb-3`}>
+                <span className="text-black font-bold">{topTraders[2].avatar}</span>
+              </div>
+              <span className="text-2xl mb-1">{topTraders[2].country}</span>
+              <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{topTraders[2].name}</p>
+              <p className="text-green-500 font-bold">+${topTraders[2].profit.toLocaleString()}</p>
+              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>+{topTraders[2].returnPct}%</p>
+              <div className={`mt-3 h-16 w-20 bg-orange-500/20 rounded-t-xl flex items-center justify-center border-t border-x border-orange-500/30`}>
+                <span className="text-3xl font-bold text-orange-400">3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Your Position */}
+        <div className={`${isDark ? "bg-gradient-to-r from-[#FFD700]/5 to-transparent" : "bg-gradient-to-r from-[#FFD700]/10 to-transparent"} rounded-2xl border ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/40"} p-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+                <FiUser className="text-black" size={20} />
+              </div>
+              <div>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Your Position</p>
+                <p className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>#{yourPosition.rank} of 1,247</p>
+              </div>
+            </div>
+            <div className="flex gap-6">
+              <div className="text-center">
+                <p className="text-green-500 font-bold text-lg">+${yourPosition.profit.toLocaleString()}</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Profit</p>
+              </div>
+              <div className="text-center">
+                <p className={`font-bold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>{yourPosition.returnPct}%</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Return</p>
+              </div>
+              <div className="text-center">
+                <p className={`font-bold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>{yourPosition.winRate}%</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Win Rate</p>
+              </div>
+            </div>
+            <button className="px-5 py-2.5 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-semibold rounded-xl hover:shadow-[0_0_20px_rgba(255,215,0,0.3)] transition-all">
+              View Stats
+            </button>
+          </div>
+        </div>
+
+        {/* Full Leaderboard Table */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} overflow-hidden`}>
+          <div className={`p-4 border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} flex items-center justify-between`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Full Rankings</h3>
+            <div className="flex gap-2">
+              <select className={`${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-lg px-3 py-1.5 text-sm`}>
+                <option>All Account Sizes</option>
+                <option>$50K+</option>
+                <option>$100K+</option>
+                <option>$200K</option>
+              </select>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className={`${isDark ? "bg-[#111]" : "bg-gray-50"}`}>
+                  <th className={`text-left py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider`}>Rank</th>
+                  <th className={`text-left py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider`}>Trader</th>
+                  <th className={`text-right py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider`}>Profit</th>
+                  <th className={`text-right py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider hidden md:table-cell`}>Return</th>
+                  <th className={`text-right py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider hidden lg:table-cell`}>Win Rate</th>
+                  <th className={`text-right py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider hidden lg:table-cell`}>Trades</th>
+                  <th className={`text-right py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider hidden xl:table-cell`}>Streak</th>
+                  <th className={`text-right py-3 px-4 text-xs font-semibold ${isDark ? "text-gray-500" : "text-gray-400"} uppercase tracking-wider hidden xl:table-cell`}>Badge</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topTraders.map((trader) => {
+                  const badgeStyle = getBadgeColor(trader.badge);
+                  return (
+                    <tr
+                      key={trader.rank}
+                      className={`${isDark ? "border-[#1a1a1a] hover:bg-[#111]/50" : "border-gray-100 hover:bg-gray-50"} border-b transition-colors`}
+                    >
+                      <td className="py-4 px-4">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                          trader.rank === 1 ? "bg-[#FFD700]/20 text-[#FFD700]" :
+                          trader.rank === 2 ? "bg-gray-400/20 text-gray-300" :
+                          trader.rank === 3 ? "bg-orange-500/20 text-orange-400" :
+                          isDark ? "bg-[#111] text-gray-400" : "bg-gray-100 text-gray-500"
+                        }`}>
+                          {trader.rank}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl ${
+                            trader.rank <= 3
+                              ? `bg-gradient-to-br ${getRankStyle(trader.rank).bg}`
+                              : isDark ? "bg-[#111]" : "bg-gray-100"
+                          } flex items-center justify-center`}>
+                            <span className={`font-bold text-sm ${trader.rank <= 3 ? "text-black" : isDark ? "text-gray-400" : "text-gray-500"}`}>
+                              {trader.avatar}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{trader.name}</span>
+                              <span>{trader.country}</span>
+                            </div>
+                            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{trader.accountSize} Account</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <p className="text-green-500 font-bold">+${trader.profit.toLocaleString()}</p>
+                      </td>
+                      <td className="py-4 px-4 text-right hidden md:table-cell">
+                        <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>+{trader.returnPct}%</p>
+                      </td>
+                      <td className="py-4 px-4 text-right hidden lg:table-cell">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="w-16 h-2 bg-[#111] rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"
+                              style={{ width: `${trader.winRate}%` }}
+                            />
+                          </div>
+                          <span className={`text-sm ${isDark ? "text-white" : "text-gray-900"}`}>{trader.winRate}%</span>
+                        </div>
+                      </td>
+                      <td className={`py-4 px-4 text-right hidden lg:table-cell ${isDark ? "text-white" : "text-gray-900"}`}>
+                        {trader.trades}
+                      </td>
+                      <td className="py-4 px-4 text-right hidden xl:table-cell">
+                        <div className="flex items-center justify-end gap-2">
+                          <FiZap className={trader.streak >= 5 ? "text-[#FFD700]" : "text-gray-500"} size={14} />
+                          <span className={`${trader.streak >= 5 ? "text-[#FFD700]" : isDark ? "text-gray-400" : "text-gray-500"}`}>
+                            {trader.streak} days
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-right hidden xl:table-cell">
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${badgeStyle.bg} ${badgeStyle.text} border ${badgeStyle.border}`}>
+                          {trader.badge}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className={`p-4 border-t ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} flex items-center justify-between`}>
+            <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>Showing 1-10 of 1,247 traders</p>
+            <div className="flex gap-2">
+              <button className={`px-3 py-1.5 ${isDark ? "bg-[#111] text-gray-400 border-[#1a1a1a]" : "bg-gray-100 text-gray-500 border-gray-200"} border rounded-lg text-sm hover:text-[#FFD700] transition-colors`}>
+                Previous
+              </button>
+              <button className={`px-3 py-1.5 ${isDark ? "bg-[#111] text-gray-400 border-[#1a1a1a]" : "bg-gray-100 text-gray-500 border-gray-200"} border rounded-lg text-sm hover:text-[#FFD700] transition-colors`}>
+                Next
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -251,9 +1339,172 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
   }
 
   if (activeTab === "calendar") {
+    // Economic events data
+    const economicEvents = [
+      { time: "08:30", currency: "USD", event: "Non-Farm Payrolls", impact: "high", forecast: "185K", previous: "175K", actual: "192K" },
+      { time: "08:30", currency: "USD", event: "Unemployment Rate", impact: "high", forecast: "3.8%", previous: "3.7%", actual: "3.9%" },
+      { time: "10:00", currency: "USD", event: "ISM Manufacturing PMI", impact: "high", forecast: "49.5", previous: "47.8", actual: "-" },
+      { time: "14:00", currency: "USD", event: "FOMC Meeting Minutes", impact: "high", forecast: "-", previous: "-", actual: "-" },
+      { time: "02:00", currency: "GBP", event: "Bank of England Rate Decision", impact: "high", forecast: "5.25%", previous: "5.25%", actual: "-" },
+      { time: "04:30", currency: "EUR", event: "ECB Press Conference", impact: "high", forecast: "-", previous: "-", actual: "-" },
+      { time: "21:30", currency: "AUD", event: "Employment Change", impact: "medium", forecast: "25.0K", previous: "32.6K", actual: "-" },
+      { time: "09:30", currency: "GBP", event: "GDP m/m", impact: "medium", forecast: "0.2%", previous: "0.1%", actual: "-" },
+      { time: "05:00", currency: "JPY", event: "BOJ Policy Rate", impact: "high", forecast: "-0.1%", previous: "-0.1%", actual: "-" },
+      { time: "08:15", currency: "USD", event: "ADP Non-Farm Employment", impact: "medium", forecast: "150K", previous: "164K", actual: "-" },
+      { time: "10:30", currency: "USD", event: "Crude Oil Inventories", impact: "medium", forecast: "-1.2M", previous: "2.7M", actual: "-" },
+      { time: "13:00", currency: "USD", event: "10-Year Bond Auction", impact: "low", forecast: "-", previous: "4.28%", actual: "-" },
+    ];
+
+    const getImpactColor = (impact: string) => {
+      switch (impact) {
+        case "high": return "bg-red-500";
+        case "medium": return "bg-orange-500";
+        case "low": return "bg-yellow-500";
+        default: return "bg-gray-500";
+      }
+    };
+
+    const getCurrencyFlag = (currency: string) => {
+      const flags: Record<string, string> = {
+        USD: "🇺🇸",
+        EUR: "🇪🇺",
+        GBP: "🇬🇧",
+        JPY: "🇯🇵",
+        AUD: "🇦🇺",
+        CAD: "🇨🇦",
+        CHF: "🇨🇭",
+        NZD: "🇳🇿",
+      };
+      return flags[currency] || "🌍";
+    };
+
     return (
-      <div className="p-6">
-        <PnLCalendar data={calendarData} />
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Economic Calendar</h2>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-1`}>Market-moving events and news releases</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                  <span className={isDark ? "text-gray-400" : "text-gray-500"}>High</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                  <span className={isDark ? "text-gray-400" : "text-gray-500"}>Medium</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                  <span className={isDark ? "text-gray-400" : "text-gray-500"}>Low</span>
+                </span>
+              </div>
+              <button className="px-4 py-2 bg-[#FFD700] text-black font-medium rounded-lg text-sm hover:bg-[#FFD700]/90 transition-colors">
+                Today
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Date Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {["Mon 27", "Tue 28", "Wed 29", "Thu 30", "Fri 31"].map((day, i) => (
+            <button
+              key={day}
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+                i === 1
+                  ? "bg-[#FFD700] text-black"
+                  : isDark
+                  ? "bg-[#0a0a0a] text-gray-400 hover:text-white border border-[#1a1a1a] hover:border-[#FFD700]/30"
+                  : "bg-white text-gray-600 hover:text-gray-900 border border-gray-200 hover:border-[#FFD700]/50"
+              }`}
+            >
+              {day}
+            </button>
+          ))}
+        </div>
+
+        {/* Events List */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} overflow-hidden`}>
+          {/* Table Header */}
+          <div className={`grid grid-cols-12 gap-4 px-6 py-3 ${isDark ? "bg-[#111]" : "bg-gray-50"} border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+            <div className="col-span-1 text-xs font-semibold text-[#FFD700]">TIME</div>
+            <div className="col-span-2 text-xs font-semibold text-[#FFD700]">CURRENCY</div>
+            <div className="col-span-4 text-xs font-semibold text-[#FFD700]">EVENT</div>
+            <div className="col-span-1 text-xs font-semibold text-[#FFD700] text-center">IMPACT</div>
+            <div className="col-span-1 text-xs font-semibold text-[#FFD700] text-right">FORECAST</div>
+            <div className="col-span-1 text-xs font-semibold text-[#FFD700] text-right">PREVIOUS</div>
+            <div className="col-span-2 text-xs font-semibold text-[#FFD700] text-right">ACTUAL</div>
+          </div>
+
+          {/* Events */}
+          {economicEvents.map((event, i) => (
+            <div
+              key={i}
+              className={`grid grid-cols-12 gap-4 px-6 py-4 border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-100"} hover:bg-[#FFD700]/5 transition-colors group`}
+            >
+              <div className={`col-span-1 text-sm font-mono ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                {event.time}
+              </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <span className="text-lg">{getCurrencyFlag(event.currency)}</span>
+                <span className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{event.currency}</span>
+              </div>
+              <div className="col-span-4">
+                <p className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"} group-hover:text-[#FFD700] transition-colors`}>
+                  {event.event}
+                </p>
+              </div>
+              <div className="col-span-1 flex justify-center">
+                <span className={`w-3 h-3 rounded-full ${getImpactColor(event.impact)}`}></span>
+              </div>
+              <div className={`col-span-1 text-sm text-right ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                {event.forecast}
+              </div>
+              <div className={`col-span-1 text-sm text-right ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                {event.previous}
+              </div>
+              <div className="col-span-2 text-right">
+                {event.actual === "-" ? (
+                  <span className={`text-sm ${isDark ? "text-gray-600" : "text-gray-400"}`}>Pending</span>
+                ) : (
+                  <span className={`text-sm font-semibold ${
+                    parseFloat(event.actual) > parseFloat(event.forecast) ? "text-green-500" : "text-red-500"
+                  }`}>
+                    {event.actual}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Upcoming High Impact Events */}
+        <div className={`${isDark ? "bg-gradient-to-br from-red-500/10 via-[#0a0a0a]/80 to-[#0a0a0a]" : "bg-gradient-to-br from-red-500/10 via-white/90 to-white"} backdrop-blur-xl rounded-2xl border border-red-500/20 p-6`}>
+          <div className="flex items-center gap-2 mb-4">
+            <FiAlertTriangle className="text-red-500" size={20} />
+            <h3 className={`text-lg font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Upcoming High Impact Events</h3>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { event: "FOMC Rate Decision", time: "Wed 14:00 EST", currency: "USD" },
+              { event: "UK CPI y/y", time: "Thu 02:00 EST", currency: "GBP" },
+              { event: "BOJ Policy Meeting", time: "Fri 23:00 EST", currency: "JPY" },
+            ].map((item, i) => (
+              <div key={i} className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-white/80"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">{getCurrencyFlag(item.currency)}</span>
+                  <span className={`text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{item.currency}</span>
+                </div>
+                <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"} text-sm`}>{item.event}</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mt-1`}>{item.time}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -305,31 +1556,654 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
     );
   }
 
-  if (activeTab === "referral") {
+  // Trading Rules Tab
+  if (activeTab === "rules") {
+    const tradingRules = [
+      {
+        category: "Account Rules",
+        rules: [
+          { title: "Maximum Daily Loss", value: "5%", desc: "Maximum loss allowed in a single trading day based on starting balance" },
+          { title: "Maximum Overall Loss", value: "10%", desc: "Maximum total drawdown allowed from initial balance" },
+          { title: "Profit Target", value: "10%", desc: "Required profit to pass the challenge phase" },
+          { title: "Minimum Trading Days", value: "5 days", desc: "Minimum number of active trading days required" },
+        ]
+      },
+      {
+        category: "Trading Restrictions",
+        rules: [
+          { title: "Weekend Holding", value: "Allowed", desc: "Positions can be held over the weekend" },
+          { title: "News Trading", value: "Allowed", desc: "Trading during high-impact news events is permitted" },
+          { title: "Expert Advisors (EAs)", value: "Allowed", desc: "Automated trading systems are permitted" },
+          { title: "Copy Trading", value: "Not Allowed", desc: "Copying trades from other accounts is prohibited" },
+        ]
+      },
+      {
+        category: "Payout Rules",
+        rules: [
+          { title: "Profit Split", value: "80/20", desc: "You keep 80% of profits, scaling up to 90%" },
+          { title: "Payout Frequency", value: "Bi-weekly", desc: "Request payouts every 14 days" },
+          { title: "Minimum Payout", value: "$100", desc: "Minimum amount required for withdrawal" },
+          { title: "Payout Processing", value: "24-48 hours", desc: "Time to process approved withdrawals" },
+        ]
+      }
+    ];
+
     return (
-      <div className="p-6 space-y-6">
-        <div className="bg-gradient-to-br from-[#FFD700]/10 to-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-6">
-          <h3 className="text-xl font-semibold text-white mb-2">Refer & Earn</h3>
-          <p className="text-gray-400 mb-6">Earn 10% commission on every referral</p>
-          <div className="bg-[#0a0a0a] rounded-xl p-4 mb-4">
-            <p className="text-xs text-gray-500 mb-2">Your Referral Link</p>
-            <div className="flex items-center gap-2">
-              <input type="text" value="https://pipzen.com/ref/TRADER123" readOnly className="flex-1 bg-[#111] border border-[#222] rounded-lg px-3 py-2 text-white text-sm" />
-              <button className="px-4 py-2 bg-[#FFD700] text-black font-medium rounded-lg">Copy</button>
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Trading Rules & Guidelines</h2>
+          <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-1`}>Understand the rules to successfully complete your challenge</p>
+        </div>
+
+        {/* Rules Grid */}
+        {tradingRules.map((section, idx) => (
+          <div key={idx} className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}>
+              <span className="w-2 h-2 bg-[#FFD700] rounded-full"></span>
+              {section.category}
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {section.rules.map((rule, i) => (
+                <div key={i} className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} hover:border-[#FFD700]/30 transition-colors`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{rule.title}</p>
+                    <span className="px-3 py-1 bg-[#FFD700]/20 text-[#FFD700] text-sm font-semibold rounded-lg">{rule.value}</span>
+                  </div>
+                  <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{rule.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white">12</p>
-              <p className="text-xs text-gray-500">Referrals</p>
+        ))}
+
+        {/* Important Notice */}
+        <div className={`bg-gradient-to-br from-[#FFD700]/10 via-[#0a0a0a]/80 to-[#0a0a0a] backdrop-blur-xl rounded-2xl border border-[#FFD700]/30 p-6`}>
+          <div className="flex items-start gap-3">
+            <FiAlertTriangle className="text-[#FFD700] flex-shrink-0 mt-1" size={20} />
+            <div>
+              <h4 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-2`}>Important Notice</h4>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                Violation of any trading rules may result in account termination. Please ensure you fully understand all rules before trading.
+                If you have any questions, contact our support team for clarification.
+              </p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-500">$840</p>
-              <p className="text-xs text-gray-500">Earned</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // FAQ Tab
+  if (activeTab === "faq") {
+    const faqs = [
+      {
+        category: "Getting Started",
+        questions: [
+          { q: "How do I start a challenge?", a: "Select a challenge from the Challenges page, complete the payment, and you'll receive your trading credentials within minutes." },
+          { q: "What platforms are supported?", a: "We support cTrader, MatchTrader, and DXTrade. You can download any platform from the Download section." },
+          { q: "Can I trade on mobile?", a: "Yes! All our platforms have mobile apps available for iOS and Android devices." },
+        ]
+      },
+      {
+        category: "Trading Rules",
+        questions: [
+          { q: "What is the maximum daily loss?", a: "The maximum daily loss is 5% of your starting balance. This resets at midnight server time." },
+          { q: "Can I hold trades over the weekend?", a: "Yes, weekend holding is allowed. However, be aware of potential gaps when markets reopen." },
+          { q: "Are Expert Advisors (EAs) allowed?", a: "Yes, EAs are allowed. However, copy trading from other accounts or signal services is prohibited." },
+        ]
+      },
+      {
+        category: "Payouts & Profits",
+        questions: [
+          { q: "How often can I request a payout?", a: "Funded traders can request payouts every 14 days (bi-weekly)." },
+          { q: "What is the profit split?", a: "The standard profit split is 80/20 (you keep 80%). This can scale up to 90% based on performance." },
+          { q: "How long does payout processing take?", a: "Payouts are typically processed within 24-48 business hours after approval." },
+        ]
+      },
+      {
+        category: "Account Management",
+        questions: [
+          { q: "Can I reset my challenge?", a: "Yes, you can reset your challenge at any time for a discounted fee before breaching any rules." },
+          { q: "What happens if I breach a rule?", a: "If you breach a trading rule, your challenge will end. You can purchase a new challenge to try again." },
+          { q: "Can I have multiple accounts?", a: "Yes, you can have up to 3 active funded accounts simultaneously." },
+        ]
+      }
+    ];
+
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Frequently Asked Questions</h2>
+          <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-1`}>Find answers to common questions about our prop firm</p>
+        </div>
+
+        {/* FAQ Categories */}
+        {faqs.map((section, idx) => (
+          <div key={idx} className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}>
+              <span className="w-2 h-2 bg-[#FFD700] rounded-full"></span>
+              {section.category}
+            </h3>
+            <div className="space-y-3">
+              {section.questions.map((faq, i) => {
+                const faqId = `${idx}-${i}`;
+                return (
+                  <div key={i} className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} overflow-hidden`}>
+                    <button
+                      onClick={() => setOpenFaq(openFaq === faqId ? null : faqId)}
+                      className="w-full p-4 text-left flex items-center justify-between hover:bg-[#FFD700]/5 transition-colors"
+                    >
+                      <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{faq.q}</span>
+                      <FiChevronDown className={`text-[#FFD700] transition-transform ${openFaq === faqId ? "rotate-180" : ""}`} />
+                    </button>
+                    {openFaq === faqId && (
+                      <div className={`px-4 pb-4 ${isDark ? "text-gray-400" : "text-gray-500"} text-sm border-t ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} pt-3`}>
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-[#FFD700]">$120</p>
-              <p className="text-xs text-gray-500">Pending</p>
+          </div>
+        ))}
+
+        {/* Contact Support */}
+        <div className={`${isDark ? "bg-gradient-to-br from-[#FFD700]/10 via-[#0a0a0a]/80 to-[#0a0a0a]" : "bg-gradient-to-br from-[#FFD700]/20 via-white/90 to-white"} backdrop-blur-xl rounded-2xl border border-[#FFD700]/30 p-6 text-center`}>
+          <p className={`${isDark ? "text-gray-400" : "text-gray-500"} mb-3`}>Can&apos;t find what you&apos;re looking for?</p>
+          <a
+            href="mailto:support@pipzen.com"
+            className="inline-block px-6 py-3 bg-[#FFD700] text-black font-semibold rounded-xl hover:bg-[#FFD700]/90 transition-colors"
+          >
+            Contact Support
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  // Support Ticket Tab
+  if (activeTab === "support") {
+    const existingTickets = [
+      { id: "#TKT-2024-0125", subject: "Payout request status", status: "resolved", date: "Jan 25, 2024", category: "Payouts" },
+      { id: "#TKT-2024-0118", subject: "Platform connection issue", status: "closed", date: "Jan 18, 2024", category: "Technical" },
+      { id: "#TKT-2024-0112", subject: "Account verification", status: "closed", date: "Jan 12, 2024", category: "Account" },
+    ];
+
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Support Center</h2>
+          <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-1`}>Submit a ticket or check the status of your existing requests</p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* New Ticket Form */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>Submit New Ticket</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Category</label>
+                <select
+                  value={ticketCategory || "general"}
+                  onChange={(e) => setTicketCategory(e.target.value)}
+                  className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}
+                >
+                  <option value="general">General Inquiry</option>
+                  <option value="technical">Technical Issue</option>
+                  <option value="account">Account Related</option>
+                  <option value="payout">Payout Request</option>
+                  <option value="billing">Billing Issue</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Subject</label>
+                <input
+                  type="text"
+                  value={ticketSubject || ""}
+                  onChange={(e) => setTicketSubject(e.target.value)}
+                  placeholder="Brief description of your issue"
+                  className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white placeholder-gray-600" : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}
+                />
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Message</label>
+                <textarea
+                  value={ticketMessage || ""}
+                  onChange={(e) => setTicketMessage(e.target.value)}
+                  placeholder="Describe your issue in detail..."
+                  rows={5}
+                  className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white placeholder-gray-600" : "bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50 resize-none`}
+                />
+              </div>
+
+              <button className="w-full px-6 py-3 bg-[#FFD700] text-black font-semibold rounded-xl hover:bg-[#FFD700]/90 transition-colors flex items-center justify-center gap-2">
+                <FiMessageSquare size={18} />
+                Submit Ticket
+              </button>
+            </div>
+          </div>
+
+          {/* Existing Tickets */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>Your Tickets</h3>
+
+            <div className="space-y-3">
+              {existingTickets.map((ticket, i) => (
+                <div key={i} className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{ticket.subject}</p>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{ticket.id} • {ticket.date}</p>
+                    </div>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-lg ${
+                      ticket.status === "resolved"
+                        ? "bg-green-500/20 text-green-500"
+                        : ticket.status === "open"
+                        ? "bg-[#FFD700]/20 text-[#FFD700]"
+                        : "bg-gray-500/20 text-gray-400"
+                    }`}>
+                      {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                    </span>
+                  </div>
+                  <span className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} bg-[#FFD700]/10 px-2 py-1 rounded`}>{ticket.category}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Contact */}
+            <div className={`mt-6 pt-6 border-t ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-3`}>Need immediate assistance?</p>
+              <div className="flex gap-3">
+                <button className={`flex-1 px-4 py-2 ${isDark ? "bg-[#111] border-[#1a1a1a]" : "bg-gray-50 border-gray-200"} border rounded-xl text-sm font-medium ${isDark ? "text-white" : "text-gray-900"} hover:border-[#FFD700]/30 transition-colors`}>
+                  Live Chat
+                </button>
+                <button className={`flex-1 px-4 py-2 ${isDark ? "bg-[#111] border-[#1a1a1a]" : "bg-gray-50 border-gray-200"} border rounded-xl text-sm font-medium ${isDark ? "text-white" : "text-gray-900"} hover:border-[#FFD700]/30 transition-colors`}>
+                  Email Us
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Settings Tab
+  if (activeTab === "settings") {
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h2 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Settings</h2>
+          <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-1`}>Manage your account preferences and security</p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Profile Settings */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}>
+              <FiUser className="text-[#FFD700]" />
+              Profile Settings
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Full Name</label>
+                <input
+                  type="text"
+                  defaultValue="John Trader"
+                  className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Email Address</label>
+                <input
+                  type="email"
+                  defaultValue="john@example.com"
+                  className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Phone Number</label>
+                <input
+                  type="tel"
+                  defaultValue="+1 (555) 123-4567"
+                  className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}
+                />
+              </div>
+              <button className="px-6 py-2.5 bg-[#FFD700] text-black font-semibold rounded-xl hover:bg-[#FFD700]/90 transition-colors">
+                Save Changes
+              </button>
+            </div>
+          </div>
+
+          {/* Security Settings */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}>
+              <FiShield className="text-[#FFD700]" />
+              Security
+            </h3>
+
+            <div className="space-y-4">
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 flex items-center justify-between`}>
+                <div>
+                  <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Two-Factor Authentication</p>
+                  <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Add an extra layer of security</p>
+                </div>
+                <button className="px-4 py-2 bg-green-500/20 text-green-500 text-sm font-medium rounded-lg">Enabled</button>
+              </div>
+
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 flex items-center justify-between`}>
+                <div>
+                  <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Login Notifications</p>
+                  <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Get notified of new logins</p>
+                </div>
+                <button className="px-4 py-2 bg-green-500/20 text-green-500 text-sm font-medium rounded-lg">Enabled</button>
+              </div>
+
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4`}>
+                <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"} mb-3`}>Change Password</p>
+                <div className="space-y-3">
+                  <input
+                    type="password"
+                    placeholder="Current password"
+                    className={`w-full ${isDark ? "bg-[#0a0a0a] border-[#1a1a1a] text-white placeholder-gray-600" : "bg-white border-gray-200 text-gray-900 placeholder-gray-400"} border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD700]/50`}
+                  />
+                  <input
+                    type="password"
+                    placeholder="New password"
+                    className={`w-full ${isDark ? "bg-[#0a0a0a] border-[#1a1a1a] text-white placeholder-gray-600" : "bg-white border-gray-200 text-gray-900 placeholder-gray-400"} border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD700]/50`}
+                  />
+                  <button className="px-4 py-2 bg-[#FFD700]/20 text-[#FFD700] text-sm font-medium rounded-lg hover:bg-[#FFD700]/30 transition-colors">
+                    Update Password
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Notification Preferences */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}>
+              <FiBell className="text-[#FFD700]" />
+              Notifications
+            </h3>
+
+            <div className="space-y-3">
+              {[
+                { label: "Trade Alerts", desc: "Get notified when trades are executed" },
+                { label: "Daily P&L Summary", desc: "Receive daily performance reports" },
+                { label: "Risk Warnings", desc: "Alerts when approaching drawdown limits" },
+                { label: "Payout Updates", desc: "Notifications about payout status" },
+                { label: "News & Updates", desc: "Platform updates and announcements" },
+              ].map((item, i) => (
+                <div key={i} className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 flex items-center justify-between`}>
+                  <div>
+                    <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{item.label}</p>
+                    <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{item.desc}</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" defaultChecked={i < 4} className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FFD700]"></div>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trading Preferences */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}>
+              <FiSliders className="text-[#FFD700]" />
+              Trading Preferences
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Default Leverage</label>
+                <select className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}>
+                  <option>1:100</option>
+                  <option>1:50</option>
+                  <option>1:30</option>
+                  <option>1:10</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Timezone</label>
+                <select className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}>
+                  <option>UTC-5 (Eastern Time)</option>
+                  <option>UTC-8 (Pacific Time)</option>
+                  <option>UTC+0 (London)</option>
+                  <option>UTC+1 (Central European)</option>
+                  <option>UTC+8 (Singapore)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Currency Display</label>
+                <select className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl px-4 py-3 focus:outline-none focus:border-[#FFD700]/50`}>
+                  <option>USD ($)</option>
+                  <option>EUR (€)</option>
+                  <option>GBP (£)</option>
+                </select>
+              </div>
+
+              <button className="px-6 py-2.5 bg-[#FFD700] text-black font-semibold rounded-xl hover:bg-[#FFD700]/90 transition-colors">
+                Save Preferences
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTab === "referral") {
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Stats Cards with Glassmorphism */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-5 relative overflow-hidden group hover:border-[#FFD700]/50 transition-all duration-300`}>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-[#FFD700]/10 rounded-full blur-2xl" />
+            <p className={`text-xs ${isDark ? "text-[#FFD700]/70" : "text-[#B8860B]"} mb-1 font-medium`}>Total Referrals</p>
+            <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>131</p>
+            <p className="text-xs text-[#FFD700] mt-1">All Levels Combined</p>
+          </div>
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-5 relative overflow-hidden group hover:border-[#FFD700]/50 transition-all duration-300`}>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/10 rounded-full blur-2xl" />
+            <p className={`text-xs ${isDark ? "text-[#FFD700]/70" : "text-[#B8860B]"} mb-1 font-medium`}>Total Earned</p>
+            <p className="text-3xl font-bold text-green-500">$2,840</p>
+            <p className="text-xs text-[#FFD700] mt-1">+$320 this month</p>
+          </div>
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-5 relative overflow-hidden group hover:border-[#FFD700]/50 transition-all duration-300`}>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-[#FFD700]/15 rounded-full blur-2xl" />
+            <p className={`text-xs ${isDark ? "text-[#FFD700]/70" : "text-[#B8860B]"} mb-1 font-medium`}>Pending Payout</p>
+            <p className="text-3xl font-bold text-[#FFD700]">$420</p>
+            <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mt-1`}>Next payout: 3 days</p>
+          </div>
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-5 relative overflow-hidden group hover:border-[#FFD700]/50 transition-all duration-300`}>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-[#FFD700]/10 rounded-full blur-2xl" />
+            <p className={`text-xs ${isDark ? "text-[#FFD700]/70" : "text-[#B8860B]"} mb-1 font-medium`}>Your Link</p>
+            <div className="flex items-center gap-2 mt-2">
+              <code className="text-sm text-[#FFD700] truncate font-mono">pipzen.com/ref/TRADER123</code>
+              <button className="p-1.5 bg-[#FFD700]/10 hover:bg-[#FFD700]/20 rounded-lg transition-colors">
+                <FiLink size={14} className="text-[#FFD700]" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Referral Network Visualization */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-8 relative overflow-hidden`}>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#FFD700]/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#FFD700]/5 rounded-full blur-3xl" />
+
+          <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"} mb-2 text-center relative`}>
+            Referral Network Structure
+          </h3>
+          <p className={`text-center ${isDark ? "text-gray-500" : "text-gray-400"} text-sm mb-8`}>
+            Build your network and earn passive income from multiple levels
+          </p>
+
+          {/* Clean Vertical Tier Layout */}
+          <div className="relative max-w-4xl mx-auto">
+            {/* Level 1: Master Referee (YOU) */}
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#FFD700] rounded-2xl blur-xl opacity-40" />
+                <div className="relative bg-gradient-to-br from-[#FFD700] to-[#FFA500] text-black px-8 py-4 rounded-2xl font-bold text-lg shadow-[0_0_30px_rgba(255,215,0,0.3)]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-black/20 rounded-full flex items-center justify-center">
+                      <FiUsers size={20} />
+                    </div>
+                    <div>
+                      <div className="text-sm opacity-80">Level 1</div>
+                      <div>Master Referee (YOU)</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Connecting Line */}
+              <div className="w-1 h-8 bg-gradient-to-b from-[#FFD700] to-[#FFD700]/30 rounded-full mt-2" />
+            </div>
+
+            {/* Level 2: Direct Referrals */}
+            <div className="flex flex-col items-center mb-6">
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-100/90"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/40"} p-6 w-full max-w-md relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/10 rounded-full blur-2xl" />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#FFD700]/20 rounded-xl flex items-center justify-center border border-[#FFD700]/30">
+                      <span className="text-[#FFD700] font-bold text-lg">L2</span>
+                    </div>
+                    <div>
+                      <p className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Direct Referrals</p>
+                      <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>People you directly invite</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-[#FFD700]">10</div>
+                    <div className="text-sm text-green-500 font-semibold">6% Commission</div>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-1">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div key={i} className="flex-1 h-2 bg-[#FFD700] rounded-full" />
+                  ))}
+                </div>
+              </div>
+              {/* Connecting Line */}
+              <div className="w-1 h-8 bg-gradient-to-b from-[#FFD700]/50 to-[#FFD700]/20 rounded-full mt-2" />
+            </div>
+
+            {/* Level 3: Sub-Referrals */}
+            <div className="flex flex-col items-center mb-6">
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-100/90"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 w-full max-w-md relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/5 rounded-full blur-2xl" />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#FFD700]/10 rounded-xl flex items-center justify-center border border-[#FFD700]/20">
+                      <span className="text-[#FFD700]/80 font-bold text-lg">L3</span>
+                    </div>
+                    <div>
+                      <p className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Sub-Referrals</p>
+                      <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Your referrals invite</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-[#FFD700]/80">30</div>
+                    <div className="text-sm text-green-500/80 font-semibold">3% Commission</div>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-0.5">
+                  {Array.from({ length: 30 }).map((_, i) => (
+                    <div key={i} className="flex-1 h-2 bg-[#FFD700]/60 rounded-full" />
+                  ))}
+                </div>
+              </div>
+              {/* Connecting Line */}
+              <div className="w-1 h-8 bg-gradient-to-b from-[#FFD700]/30 to-[#FFD700]/10 rounded-full mt-2" />
+            </div>
+
+            {/* Level 4: Tier 3 Referrals */}
+            <div className="flex flex-col items-center">
+              <div className={`${isDark ? "bg-[#111]/80" : "bg-gray-100/90"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"} p-6 w-full max-w-md relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/5 rounded-full blur-2xl" />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#FFD700]/5 rounded-xl flex items-center justify-center border border-[#FFD700]/10">
+                      <span className="text-[#FFD700]/60 font-bold text-lg">L4</span>
+                    </div>
+                    <div>
+                      <p className={`font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Tier 3 Referrals</p>
+                      <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Deep network earnings</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-[#FFD700]/60">90</div>
+                    <div className="text-sm text-green-500/60 font-semibold">1% Commission</div>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-30 gap-px">
+                  {Array.from({ length: 90 }).map((_, i) => (
+                    <div key={i} className="h-1.5 bg-[#FFD700]/40 rounded-full" style={{ width: "100%" }} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Commission Summary */}
+          <div className={`mt-10 grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 border-t ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
+            <div className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-gray-50/80"} backdrop-blur rounded-xl p-4 text-center border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
+              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Max Potential Network</p>
+              <p className="text-2xl font-bold text-[#FFD700]">131</p>
+              <p className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>1 + 10 + 30 + 90</p>
+            </div>
+            <div className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-gray-50/80"} backdrop-blur rounded-xl p-4 text-center border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
+              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Combined Commission Rate</p>
+              <p className="text-2xl font-bold text-green-500">10%</p>
+              <p className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>6% + 3% + 1%</p>
+            </div>
+            <div className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-gray-50/80"} backdrop-blur rounded-xl p-4 text-center border ${isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20"}`}>
+              <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Passive Income Potential</p>
+              <p className="text-2xl font-bold text-[#FFD700]">Unlimited</p>
+              <p className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"}`}>Recurring earnings</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Referral Link Section */}
+        <div className={`${isDark ? "bg-gradient-to-br from-[#FFD700]/10 via-[#0a0a0a]/80 to-[#0a0a0a]" : "bg-gradient-to-br from-[#FFD700]/20 via-white/90 to-white"} backdrop-blur-xl rounded-2xl border border-[#FFD700]/30 p-8 relative overflow-hidden`}>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD700]/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FFD700]/5 rounded-full blur-3xl" />
+
+          <div className="relative">
+            <h3 className={`text-xl font-bold ${isDark ? "text-white" : "text-gray-900"} mb-2`}>Share Your Referral Link</h3>
+            <p className={`${isDark ? "text-gray-400" : "text-gray-600"} mb-6 text-sm`}>
+              Earn up to 6% commission on direct referrals and passive income from your entire network
+            </p>
+            <div className={`${isDark ? "bg-[#0a0a0a]/80" : "bg-white/90"} backdrop-blur rounded-xl p-4 border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"}`}>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <input
+                  type="text"
+                  value="https://pipzen.com/ref/TRADER123"
+                  readOnly
+                  className={`flex-1 ${isDark ? "bg-[#111] border-[#FFD700]/20 text-white" : "bg-gray-50 border-[#FFD700]/30 text-gray-900"} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-[#FFD700]/50`}
+                />
+                <button className="px-6 py-3 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-bold rounded-xl hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-all duration-300 flex items-center justify-center gap-2">
+                  <FiLink size={18} />
+                  Copy Link
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -357,6 +2231,623 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
     minTradingDays: 5,
     daysRemaining: 18,
   };
+
+  // KYC Verification Tab
+  if (activeTab === "kyc") {
+    const kycStatus = {
+      overall: "pending", // pending, in_review, approved, rejected
+      identity: { status: "approved", document: "Passport", uploadedAt: "Jan 15, 2024" },
+      address: { status: "in_review", document: "Utility Bill", uploadedAt: "Jan 20, 2024" },
+      selfie: { status: "pending", document: null, uploadedAt: null },
+    };
+
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case "approved": return { bg: "bg-green-500/20", text: "text-green-400", border: "border-green-500/30" };
+        case "in_review": return { bg: "bg-yellow-500/20", text: "text-yellow-400", border: "border-yellow-500/30" };
+        case "rejected": return { bg: "bg-red-500/20", text: "text-red-400", border: "border-red-500/30" };
+        default: return { bg: "bg-gray-500/20", text: "text-gray-400", border: "border-gray-500/30" };
+      }
+    };
+
+    const getStatusIcon = (status: string) => {
+      switch (status) {
+        case "approved": return <FiCheckCircle className="text-green-400" size={20} />;
+        case "in_review": return <FiRefreshCw className="text-yellow-400 animate-spin" size={20} />;
+        case "rejected": return <FiXCircle className="text-red-400" size={20} />;
+        default: return <FiShield className="text-gray-400" size={20} />;
+      }
+    };
+
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-[#FFD700]/5 rounded-full blur-3xl" />
+          <div className="relative flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"} flex items-center gap-3`}>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+                  <FiShield className="text-black" size={24} />
+                </div>
+                KYC Verification
+              </h2>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-2`}>Complete your identity verification to unlock full platform features</p>
+            </div>
+            <div className={`px-4 py-2 rounded-xl ${getStatusColor(kycStatus.overall).bg} ${getStatusColor(kycStatus.overall).border} border`}>
+              <span className={`text-sm font-semibold ${getStatusColor(kycStatus.overall).text} capitalize`}>
+                {kycStatus.overall === "in_review" ? "Under Review" : kycStatus.overall}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Steps */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-6`}>Verification Progress</h3>
+          <div className="flex items-center justify-between mb-8">
+            {["Identity", "Address", "Selfie"].map((step, i) => {
+              const stepStatus = i === 0 ? kycStatus.identity.status : i === 1 ? kycStatus.address.status : kycStatus.selfie.status;
+              const isCompleted = stepStatus === "approved";
+              const isActive = stepStatus === "in_review" || (stepStatus === "pending" && (i === 0 || (i === 1 && kycStatus.identity.status === "approved") || (i === 2 && kycStatus.address.status === "approved")));
+              return (
+                <div key={step} className="flex flex-col items-center flex-1">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${isCompleted ? "bg-gradient-to-br from-green-500 to-emerald-400 shadow-[0_0_20px_rgba(34,197,94,0.4)]" : isActive ? "bg-gradient-to-br from-[#FFD700] to-[#FFA500] shadow-[0_0_20px_rgba(255,215,0,0.4)]" : isDark ? "bg-[#1a1a1a]" : "bg-gray-200"}`}>
+                    {isCompleted ? <FiCheckCircle className="text-white" size={24} /> : <span className={`font-bold ${isActive ? "text-black" : isDark ? "text-gray-500" : "text-gray-400"}`}>{i + 1}</span>}
+                  </div>
+                  <span className={`text-sm font-medium ${isCompleted ? "text-green-400" : isActive ? "text-[#FFD700]" : isDark ? "text-gray-500" : "text-gray-400"}`}>{step}</span>
+                  {i < 2 && (
+                    <div className={`absolute h-1 w-[calc(33%-2rem)] ${isCompleted ? "bg-green-500" : isDark ? "bg-[#1a1a1a]" : "bg-gray-200"}`} style={{ left: `calc(${(i + 1) * 33}% - 4rem)`, top: "1.5rem" }} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-[#FFD700] to-green-500 rounded-full transition-all duration-500" style={{ width: `${(kycStatus.identity.status === "approved" ? 33 : 0) + (kycStatus.address.status === "approved" ? 33 : kycStatus.address.status === "in_review" ? 16 : 0) + (kycStatus.selfie.status === "approved" ? 34 : 0)}%` }} />
+          </div>
+        </div>
+
+        {/* Document Upload Cards */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Identity Document */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden hover:border-[#FFD700]/40 transition-all duration-300`}>
+            <div className={`absolute top-0 right-0 w-24 h-24 ${kycStatus.identity.status === "approved" ? "bg-green-500/10" : "bg-[#FFD700]/10"} rounded-full blur-2xl`} />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Identity Document</h4>
+                {getStatusIcon(kycStatus.identity.status)}
+              </div>
+              <div className={`p-4 rounded-xl ${isDark ? "bg-[#111]" : "bg-gray-50"} border ${getStatusColor(kycStatus.identity.status).border} mb-4`}>
+                <div className="flex items-center gap-3">
+                  <FiFileText className={getStatusColor(kycStatus.identity.status).text} size={24} />
+                  <div>
+                    <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{kycStatus.identity.document}</p>
+                    <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Uploaded {kycStatus.identity.uploadedAt}</p>
+                  </div>
+                </div>
+              </div>
+              <div className={`px-3 py-2 rounded-lg ${getStatusColor(kycStatus.identity.status).bg} text-center`}>
+                <span className={`text-sm font-medium ${getStatusColor(kycStatus.identity.status).text} capitalize`}>
+                  {kycStatus.identity.status === "in_review" ? "Under Review" : kycStatus.identity.status}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Address Proof */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden hover:border-[#FFD700]/40 transition-all duration-300`}>
+            <div className={`absolute top-0 right-0 w-24 h-24 ${kycStatus.address.status === "approved" ? "bg-green-500/10" : "bg-yellow-500/10"} rounded-full blur-2xl`} />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Proof of Address</h4>
+                {getStatusIcon(kycStatus.address.status)}
+              </div>
+              <div className={`p-4 rounded-xl ${isDark ? "bg-[#111]" : "bg-gray-50"} border ${getStatusColor(kycStatus.address.status).border} mb-4`}>
+                <div className="flex items-center gap-3">
+                  <FiFileText className={getStatusColor(kycStatus.address.status).text} size={24} />
+                  <div>
+                    <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{kycStatus.address.document}</p>
+                    <p className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>Uploaded {kycStatus.address.uploadedAt}</p>
+                  </div>
+                </div>
+              </div>
+              <div className={`px-3 py-2 rounded-lg ${getStatusColor(kycStatus.address.status).bg} text-center`}>
+                <span className={`text-sm font-medium ${getStatusColor(kycStatus.address.status).text} capitalize`}>
+                  {kycStatus.address.status === "in_review" ? "Under Review" : kycStatus.address.status}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Selfie Verification */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden hover:border-[#FFD700]/40 transition-all duration-300`}>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[#FFD700]/10 rounded-full blur-2xl" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Selfie Verification</h4>
+                {getStatusIcon(kycStatus.selfie.status)}
+              </div>
+              <div className={`p-8 rounded-xl ${isDark ? "bg-[#111]" : "bg-gray-50"} border-2 border-dashed ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/50"} mb-4 text-center cursor-pointer hover:border-[#FFD700] transition-colors group`}>
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#FFD700]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <FiUser className="text-[#FFD700]" size={32} />
+                </div>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Click to upload selfie</p>
+                <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mt-1`}>Hold your ID next to your face</p>
+              </div>
+              <button className="w-full px-4 py-3 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-semibold rounded-xl hover:shadow-[0_0_20px_rgba(255,215,0,0.4)] transition-all duration-300">
+                Upload Selfie
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Requirements Info */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4 flex items-center gap-2`}>
+            <FiHelpCircle className="text-[#FFD700]" />
+            Document Requirements
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { title: "Identity Document", items: ["Valid Passport or National ID", "Clear, unobstructed photo", "All corners visible", "Not expired"] },
+              { title: "Proof of Address", items: ["Utility bill or Bank statement", "Dated within last 3 months", "Full name and address visible", "Official document only"] },
+              { title: "Selfie Requirements", items: ["Face clearly visible", "Hold ID next to face", "Good lighting conditions", "No filters or editing"] },
+            ].map((section, i) => (
+              <div key={i} className={`p-4 rounded-xl ${isDark ? "bg-[#111]/80" : "bg-gray-50"}`}>
+                <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"} mb-3`}>{section.title}</h4>
+                <ul className="space-y-2">
+                  {section.items.map((item, j) => (
+                    <li key={j} className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} flex items-start gap-2`}>
+                      <FiCheckCircle className="text-[#FFD700] mt-0.5 flex-shrink-0" size={14} />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Withdrawal Tab
+  if (activeTab === "withdrawal") {
+    const withdrawalMethods = [
+      { id: "bank", name: "Bank Transfer", icon: "🏦", fee: "0%", time: "1-3 business days", min: 50, max: 50000 },
+      { id: "crypto", name: "Cryptocurrency", icon: "₿", fee: "0%", time: "Instant - 24 hours", min: 20, max: 100000 },
+      { id: "paypal", name: "PayPal", icon: "💳", fee: "2%", time: "Instant", min: 10, max: 10000 },
+    ];
+
+    const withdrawalHistory = [
+      { id: "WD001", date: "Jan 25, 2024", amount: 2500, method: "Bank Transfer", status: "completed", txId: "TX89234..." },
+      { id: "WD002", date: "Jan 18, 2024", amount: 1800, method: "Cryptocurrency", status: "completed", txId: "0x8f3a2..." },
+      { id: "WD003", date: "Jan 10, 2024", amount: 3200, method: "Bank Transfer", status: "completed", txId: "TX78123..." },
+      { id: "WD004", date: "Jan 05, 2024", amount: 500, method: "PayPal", status: "completed", txId: "PP45678..." },
+    ];
+
+    const availableBalance = 8750.00;
+    const pendingWithdrawal = 0;
+    const totalWithdrawn = 8000.00;
+
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl" />
+            <div className="relative">
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-1`}>Available Balance</p>
+              <p className="text-3xl font-bold text-green-400">${availableBalance.toLocaleString()}</p>
+              <p className="text-xs text-[#FFD700] mt-2">Ready to withdraw</p>
+            </div>
+          </div>
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl" />
+            <div className="relative">
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-1`}>Pending Withdrawal</p>
+              <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>${pendingWithdrawal.toLocaleString()}</p>
+              <p className="text-xs text-yellow-400 mt-2">Processing</p>
+            </div>
+          </div>
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/10 rounded-full blur-3xl" />
+            <div className="relative">
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-1`}>Total Withdrawn</p>
+              <p className="text-3xl font-bold text-[#FFD700]">${totalWithdrawn.toLocaleString()}</p>
+              <p className="text-xs text-green-400 mt-2">Lifetime earnings</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Request Withdrawal */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-6 flex items-center gap-2`}>
+              <FiDollarSign className="text-[#FFD700]" />
+              Request Withdrawal
+            </h3>
+
+            {/* Amount Input */}
+            <div className="mb-6">
+              <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-2`}>Amount (USD)</label>
+              <div className="relative">
+                <span className={`absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold ${isDark ? "text-gray-500" : "text-gray-400"}`}>$</span>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  className={`w-full ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl pl-10 pr-4 py-4 text-2xl font-bold focus:outline-none focus:border-[#FFD700]/50`}
+                />
+              </div>
+              <div className="flex gap-2 mt-3">
+                {[25, 50, 75, 100].map(percent => (
+                  <button key={percent} className={`flex-1 px-3 py-2 ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-lg text-sm font-medium hover:border-[#FFD700]/50 transition-colors`}>
+                    {percent}%
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Withdrawal Method */}
+            <div className="mb-6">
+              <label className={`block text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} mb-3`}>Select Method</label>
+              <div className="space-y-3">
+                {withdrawalMethods.map(method => (
+                  <label key={method.id} className={`flex items-center gap-4 p-4 ${isDark ? "bg-[#111] border-[#1a1a1a]" : "bg-gray-50 border-gray-200"} border rounded-xl cursor-pointer hover:border-[#FFD700]/50 transition-all group`}>
+                    <input type="radio" name="withdrawal-method" className="sr-only" />
+                    <span className="text-2xl">{method.icon}</span>
+                    <div className="flex-1">
+                      <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{method.name}</p>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{method.time} • Fee: {method.fee}</p>
+                    </div>
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-500 group-hover:border-[#FFD700] transition-colors flex items-center justify-center">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#FFD700] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <button className="w-full px-6 py-4 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-bold rounded-xl hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-all duration-300 text-lg">
+              Request Withdrawal
+            </button>
+          </div>
+
+          {/* Withdrawal History */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-6 flex items-center gap-2`}>
+              <FiList className="text-[#FFD700]" />
+              Recent Withdrawals
+            </h3>
+
+            <div className="space-y-3">
+              {withdrawalHistory.map(withdrawal => (
+                <div key={withdrawal.id} className={`p-4 ${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} hover:border-[#FFD700]/30 transition-colors`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                        <FiArrowUp className="text-green-400" size={20} />
+                      </div>
+                      <div>
+                        <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>${withdrawal.amount.toLocaleString()}</p>
+                        <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{withdrawal.method}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-lg capitalize">{withdrawal.status}</span>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mt-1`}>{withdrawal.date}</p>
+                    </div>
+                  </div>
+                  <div className={`text-xs ${isDark ? "text-gray-600" : "text-gray-400"} font-mono`}>TX: {withdrawal.txId}</div>
+                </div>
+              ))}
+            </div>
+
+            <button className={`w-full mt-4 px-4 py-3 ${isDark ? "bg-[#111] border-[#1a1a1a] text-white" : "bg-gray-50 border-gray-200 text-gray-900"} border rounded-xl text-sm font-medium hover:border-[#FFD700]/50 transition-colors`}>
+              View All Transactions
+            </button>
+          </div>
+        </div>
+
+        {/* Important Notice */}
+        <div className={`${isDark ? "bg-yellow-500/10 border-yellow-500/30" : "bg-yellow-50 border-yellow-200"} border rounded-2xl p-6`}>
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+              <FiAlertTriangle className="text-yellow-500" size={20} />
+            </div>
+            <div>
+              <h4 className={`font-semibold ${isDark ? "text-yellow-400" : "text-yellow-700"} mb-2`}>Important Information</h4>
+              <ul className={`text-sm ${isDark ? "text-yellow-400/80" : "text-yellow-600"} space-y-1`}>
+                <li>• Withdrawals are processed within 24-48 hours on business days</li>
+                <li>• Minimum withdrawal amount is $50 for bank transfers</li>
+                <li>• Ensure your KYC verification is complete before requesting withdrawals</li>
+                <li>• Withdrawal requests made after 5 PM UTC will be processed next business day</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Certificates Tab
+  if (activeTab === "certificates") {
+    const certificates = [
+      { id: "CERT001", type: "Phase 1 Completion", account: "$100K Challenge", date: "Jan 20, 2024", status: "issued", downloadUrl: "#" },
+      { id: "CERT002", type: "Phase 2 Completion", account: "$100K Challenge", date: "Jan 28, 2024", status: "issued", downloadUrl: "#" },
+      { id: "CERT003", type: "Funded Trader", account: "$100K Funded", date: "Feb 01, 2024", status: "issued", downloadUrl: "#" },
+      { id: "CERT004", type: "First Payout", account: "$100K Funded", date: "Feb 15, 2024", status: "pending", downloadUrl: null },
+    ];
+
+    const achievements = [
+      { title: "Challenge Champion", desc: "Completed Phase 1 in record time", icon: "🏆", earned: true },
+      { title: "Consistent Trader", desc: "10 consecutive profitable days", icon: "📈", earned: true },
+      { title: "Risk Master", desc: "Never exceeded 50% of max drawdown", icon: "🛡️", earned: true },
+      { title: "Volume King", desc: "Execute 500+ trades", icon: "👑", earned: false },
+      { title: "Profit Milestone", desc: "Reach $10,000 in total profits", icon: "💰", earned: false },
+      { title: "Elite Trader", desc: "Maintain 70%+ win rate for 30 days", icon: "⭐", earned: false },
+    ];
+
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+          <div className="absolute top-0 right-0 w-40 h-40 bg-[#FFD700]/5 rounded-full blur-3xl" />
+          <div className="relative">
+            <h2 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"} flex items-center gap-3`}>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.3)]">
+                <FiAward className="text-black" size={24} />
+              </div>
+              Certificates & Achievements
+            </h2>
+            <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mt-2`}>Download your trading certificates and track your achievements</p>
+          </div>
+        </div>
+
+        {/* Certificates Grid */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-6 flex items-center gap-2`}>
+            <FiFileText className="text-[#FFD700]" />
+            Your Certificates
+          </h3>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            {certificates.map(cert => (
+              <div key={cert.id} className={`p-5 ${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl border ${cert.status === "issued" ? "border-[#FFD700]/30" : isDark ? "border-[#1a1a1a]" : "border-gray-200"} hover:border-[#FFD700]/50 transition-all duration-300 group relative overflow-hidden`}>
+                {cert.status === "issued" && (
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-[#FFD700]/10 rounded-full blur-2xl" />
+                )}
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-xl ${cert.status === "issued" ? "bg-gradient-to-br from-[#FFD700] to-[#FFA500]" : isDark ? "bg-[#1a1a1a]" : "bg-gray-200"} flex items-center justify-center`}>
+                        <FiAward className={cert.status === "issued" ? "text-black" : isDark ? "text-gray-500" : "text-gray-400"} size={24} />
+                      </div>
+                      <div>
+                        <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{cert.type}</p>
+                        <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{cert.account}</p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 rounded-lg text-xs font-medium ${cert.status === "issued" ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                      {cert.status === "issued" ? "Issued" : "Pending"}
+                    </span>
+                  </div>
+
+                  <div className={`flex items-center justify-between pt-4 border-t ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className={isDark ? "text-gray-500" : "text-gray-400"}>ID:</span>
+                      <span className={`font-mono ${isDark ? "text-gray-400" : "text-gray-500"}`}>{cert.id}</span>
+                    </div>
+                    <div className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>{cert.date}</div>
+                  </div>
+
+                  {cert.status === "issued" && (
+                    <button className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-semibold rounded-xl hover:shadow-[0_0_20px_rgba(255,215,0,0.4)] transition-all duration-300 flex items-center justify-center gap-2">
+                      <FiDownload size={18} />
+                      Download Certificate
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Achievements */}
+        <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+          <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-6 flex items-center gap-2`}>
+            <span className="text-2xl">🏅</span>
+            Trading Achievements
+          </h3>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {achievements.map((achievement, i) => (
+              <div key={i} className={`p-5 ${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl border ${achievement.earned ? "border-[#FFD700]/30" : isDark ? "border-[#1a1a1a]" : "border-gray-200"} relative overflow-hidden transition-all duration-300 ${achievement.earned ? "hover:border-[#FFD700]/50 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)]" : "opacity-60"}`}>
+                {achievement.earned && (
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-[#FFD700]/10 rounded-full blur-2xl" />
+                )}
+                <div className="relative text-center">
+                  <div className={`text-4xl mb-3 ${!achievement.earned && "grayscale"}`}>{achievement.icon}</div>
+                  <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>{achievement.title}</p>
+                  <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{achievement.desc}</p>
+                  {achievement.earned && (
+                    <div className="mt-3 inline-flex items-center gap-1 px-3 py-1 bg-[#FFD700]/20 rounded-full">
+                      <FiCheckCircle className="text-[#FFD700]" size={12} />
+                      <span className="text-[#FFD700] text-xs font-medium">Earned</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Share Section */}
+        <div className={`${isDark ? "bg-gradient-to-r from-[#FFD700]/10 to-[#FFA500]/10" : "bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/20"} rounded-2xl border ${isDark ? "border-[#FFD700]/30" : "border-[#FFD700]/40"} p-6`}>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h4 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>Share Your Success</h4>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Showcase your achievements on social media</p>
+            </div>
+            <div className="flex gap-3">
+              <button className={`px-4 py-2 ${isDark ? "bg-[#0a0a0a]" : "bg-white"} rounded-lg text-sm font-medium ${isDark ? "text-white" : "text-gray-900"} hover:bg-[#FFD700]/20 transition-colors flex items-center gap-2`}>
+                <FiLink size={16} />
+                Copy Link
+              </button>
+              <button className="px-4 py-2 bg-[#1DA1F2] rounded-lg text-sm font-medium text-white hover:bg-[#1DA1F2]/80 transition-colors">
+                Share on Twitter
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Billing History Tab
+  if (activeTab === "billing") {
+    const billingHistory = [
+      { id: "INV001", date: "Jan 01, 2024", description: "$100K Challenge - Phase 1", amount: 499, status: "paid", method: "Credit Card", card: "•••• 4242" },
+      { id: "INV002", date: "Dec 15, 2023", description: "$50K Challenge - Phase 1", amount: 299, status: "paid", method: "PayPal", card: "john@email.com" },
+      { id: "INV003", date: "Nov 20, 2023", description: "$25K Challenge - Phase 1", amount: 199, status: "paid", method: "Crypto", card: "0x8f3a..." },
+      { id: "INV004", date: "Oct 10, 2023", description: "$10K Challenge - Phase 1", amount: 99, status: "refunded", method: "Credit Card", card: "•••• 5678" },
+      { id: "INV005", date: "Sep 05, 2023", description: "$100K Challenge Reset", amount: 99, status: "paid", method: "Credit Card", card: "•••• 4242" },
+    ];
+
+    const paymentMethods = [
+      { id: "card1", type: "Visa", last4: "4242", expiry: "12/25", isDefault: true },
+      { id: "card2", type: "Mastercard", last4: "5678", expiry: "08/24", isDefault: false },
+    ];
+
+    const totalSpent = billingHistory.filter(b => b.status === "paid").reduce((acc, b) => acc + b.amount, 0);
+
+    return (
+      <div className={`p-4 lg:p-6 space-y-6 ${isDark ? "" : "bg-gray-50"}`}>
+        {/* Header Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFD700]/10 rounded-full blur-3xl" />
+            <div className="relative">
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-1`}>Total Spent</p>
+              <p className="text-3xl font-bold text-[#FFD700]">${totalSpent.toLocaleString()}</p>
+              <p className="text-xs text-green-400 mt-2">Lifetime purchases</p>
+            </div>
+          </div>
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl" />
+            <div className="relative">
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-1`}>Active Subscriptions</p>
+              <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>2</p>
+              <p className="text-xs text-[#FFD700] mt-2">Funded accounts</p>
+            </div>
+          </div>
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl" />
+            <div className="relative">
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-1`}>Payment Methods</p>
+              <p className={`text-3xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>{paymentMethods.length}</p>
+              <p className="text-xs text-purple-400 mt-2">Cards saved</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Billing History Table */}
+          <div className={`lg:col-span-2 ${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} flex items-center gap-2`}>
+                <FiFileText className="text-[#FFD700]" />
+                Billing History
+              </h3>
+              <button className={`px-4 py-2 ${isDark ? "bg-[#111] border-[#1a1a1a]" : "bg-gray-50 border-gray-200"} border rounded-lg text-sm font-medium ${isDark ? "text-white" : "text-gray-900"} hover:border-[#FFD700]/50 transition-colors`}>
+                Download All
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className={`text-left text-xs ${isDark ? "text-gray-500" : "text-gray-400"} border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
+                    <th className="pb-3 font-medium">Invoice</th>
+                    <th className="pb-3 font-medium">Date</th>
+                    <th className="pb-3 font-medium">Description</th>
+                    <th className="pb-3 font-medium">Amount</th>
+                    <th className="pb-3 font-medium">Status</th>
+                    <th className="pb-3 font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1a1a1a]">
+                  {billingHistory.map(invoice => (
+                    <tr key={invoice.id} className={`${isDark ? "hover:bg-[#111]/50" : "hover:bg-gray-50"} transition-colors`}>
+                      <td className={`py-4 font-mono text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{invoice.id}</td>
+                      <td className={`py-4 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{invoice.date}</td>
+                      <td className={`py-4 text-sm ${isDark ? "text-white" : "text-gray-900"}`}>{invoice.description}</td>
+                      <td className={`py-4 text-sm font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>${invoice.amount}</td>
+                      <td className="py-4">
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${invoice.status === "paid" ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                          {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="py-4">
+                        <button className="p-2 hover:bg-[#FFD700]/10 rounded-lg transition-colors">
+                          <FiDownload className={isDark ? "text-gray-400" : "text-gray-500"} size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6`}>
+            <h3 className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-6 flex items-center gap-2`}>
+              <FiCreditCard className="text-[#FFD700]" />
+              Payment Methods
+            </h3>
+
+            <div className="space-y-4">
+              {paymentMethods.map(card => (
+                <div key={card.id} className={`p-4 ${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl border ${card.isDefault ? "border-[#FFD700]/30" : isDark ? "border-[#1a1a1a]" : "border-gray-200"} relative overflow-hidden`}>
+                  {card.isDefault && (
+                    <span className="absolute top-2 right-2 px-2 py-0.5 bg-[#FFD700]/20 text-[#FFD700] text-[10px] font-medium rounded">Default</span>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-8 rounded ${card.type === "Visa" ? "bg-blue-600" : "bg-red-500"} flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">{card.type === "Visa" ? "VISA" : "MC"}</span>
+                    </div>
+                    <div>
+                      <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>•••• {card.last4}</p>
+                      <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>Expires {card.expiry}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <button className={`w-full p-4 ${isDark ? "bg-[#111]/80 border-[#1a1a1a]" : "bg-gray-50 border-gray-200"} border-2 border-dashed rounded-xl text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-500"} hover:border-[#FFD700]/50 hover:text-[#FFD700] transition-all flex items-center justify-center gap-2`}>
+                <FiPlus size={18} />
+                Add Payment Method
+              </button>
+            </div>
+
+            {/* Billing Address */}
+            <div className="mt-6 pt-6 border-t border-[#1a1a1a]">
+              <h4 className={`font-medium ${isDark ? "text-white" : "text-gray-900"} mb-3`}>Billing Address</h4>
+              <div className={`p-4 ${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl`}>
+                <p className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>John Trader</p>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>123 Trading Street</p>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>New York, NY 10001</p>
+                <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>United States</p>
+                <button className="mt-3 text-[#FFD700] text-sm font-medium hover:text-[#FFA500] transition-colors">Edit Address</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Default: Overview
   return (
@@ -523,7 +3014,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           <div
             className="h-44 relative cursor-crosshair"
             onMouseMove={handleChartMouseMove}
-            onMouseLeave={() => setChartHover(null)}
+            onMouseLeave={handleChartMouseLeave}
           >
             <svg className="w-full h-full" viewBox="0 0 300 120" preserveAspectRatio="none">
               {/* Grid lines */}
@@ -547,40 +3038,36 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
               <polyline
                 fill="none"
                 stroke="#FFD700"
-                strokeWidth="3"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 points={equityData.map((d, i) => `${(i / 29) * 300},${d.y}`).join(' ')}
-                style={{ filter: "drop-shadow(0 0 6px #FFD700)" }}
-                className="transition-all duration-100"
               />
               {/* Area fill */}
               <polygon
                 fill="url(#goldGradientExpanded)"
                 points={`${equityData.map((d, i) => `${(i / 29) * 300},${d.y}`).join(' ')} 300,120 0,120`}
               />
-              {/* Smooth hover indicator */}
+              {/* Hover indicator - simplified for performance */}
               {chartHover && (
-                <g className="transition-transform duration-75">
+                <g>
                   <line
                     x1={chartHover.x} y1={0} x2={chartHover.x} y2={120}
-                    stroke="#FFD700" strokeWidth="1" strokeDasharray="4,4" opacity="0.6"
+                    stroke="#FFD700" strokeWidth="1" opacity="0.5"
                   />
                   <circle
-                    cx={chartHover.x} cy={chartHover.y} r="6"
+                    cx={chartHover.x} cy={chartHover.y} r="5"
                     fill="#FFD700"
-                    style={{ filter: "drop-shadow(0 0 10px #FFD700)" }}
                   />
                   <circle
-                    cx={chartHover.x} cy={chartHover.y} r="10"
-                    fill="none" stroke="#FFD700" strokeWidth="1.5" opacity="0.4"
+                    cx={chartHover.x} cy={chartHover.y} r="8"
+                    fill="none" stroke="#FFD700" strokeWidth="2" opacity="0.5"
                   />
                 </g>
               )}
-              {/* Current position dot with pulse */}
-              <circle cx="300" cy={equityData[29]?.y || 22} r="6" fill="#FFD700" style={{ filter: "drop-shadow(0 0 10px #FFD700)" }} />
-              <circle cx="300" cy={equityData[29]?.y || 22} r="10" fill="none" stroke="#FFD700" strokeWidth="2" opacity="0.5">
-                <animate attributeName="r" from="6" to="15" dur="1.5s" repeatCount="indefinite" />
-                <animate attributeName="opacity" from="0.5" to="0" dur="1.5s" repeatCount="indefinite" />
-              </circle>
+              {/* Current position dot */}
+              <circle cx="300" cy={equityData[29]?.y || 22} r="5" fill="#FFD700" />
+              <circle cx="300" cy={equityData[29]?.y || 22} r="8" fill="none" stroke="#FFD700" strokeWidth="1.5" opacity="0.6" />
               <defs>
                 <linearGradient id="goldGradientExpanded" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stopColor="#FFD700" stopOpacity="0.5" />
@@ -589,13 +3076,13 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                 </linearGradient>
               </defs>
             </svg>
-            {/* Smooth Hover Tooltip */}
+            {/* Hover Tooltip - simplified for performance */}
             {chartHover && (
               <div
-                className="absolute bg-[#0a0a0a]/95 backdrop-blur-xl border border-[#FFD700]/30 rounded-xl p-3 shadow-[0_0_20px_rgba(255,215,0,0.3)] z-20 pointer-events-none transition-all duration-75 ease-out"
+                className="absolute bg-[#0a0a0a] border border-[#FFD700]/40 rounded-lg p-2.5 z-20 pointer-events-none"
                 style={{
                   left: `${Math.min(Math.max(chartHover.x / 3, 5), 65)}%`,
-                  top: "10px",
+                  top: "8px",
                   transform: "translateX(-50%)"
                 }}
               >

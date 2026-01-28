@@ -21,6 +21,13 @@ import {
   FiChevronRight,
   FiSun,
   FiMoon,
+  FiBook,
+  FiHelpCircle,
+  FiMessageSquare,
+  FiSettings,
+  FiShield,
+  FiCreditCard,
+  FiFileText,
 } from "react-icons/fi";
 import DashboardContent from "./DashboardContent";
 import { useTheme } from "@/context/ThemeContext";
@@ -32,12 +39,24 @@ const mainMenuItems = [
   { icon: FiBarChart2, label: "Competitions", id: "competitions" },
   { icon: FiTrendingUp, label: "Leaderboard", id: "leaderboard" },
   { icon: FiCalendar, label: "Economic Calendar", id: "calendar" },
-  { icon: FiDownload, label: "Download", id: "download" },
-  { icon: FiGlobe, label: "Ecosystem", id: "ecosystem" },
 ];
 
 const earningsMenuItems = [
   { icon: FiGift, label: "Referral", id: "referral" },
+];
+
+const accountMenuItems = [
+  { icon: FiShield, label: "KYC Verification", id: "kyc" },
+  { icon: FiCreditCard, label: "Withdrawal", id: "withdrawal" },
+  { icon: FiFileText, label: "Certificates", id: "certificates" },
+  { icon: FiCreditCard, label: "Billing History", id: "billing" },
+];
+
+const supportMenuItems = [
+  { icon: FiBook, label: "Trading Rules", id: "rules" },
+  { icon: FiHelpCircle, label: "FAQ", id: "faq" },
+  { icon: FiMessageSquare, label: "Support Ticket", id: "support" },
+  { icon: FiSettings, label: "Settings", id: "settings" },
 ];
 
 export default function DashboardLayout() {
@@ -46,7 +65,7 @@ export default function DashboardLayout() {
   const [activeTab, setActiveTab] = useState("overview");
   const { theme, toggleTheme, isDark } = useTheme();
 
-  const allMenuItems = [...mainMenuItems, ...earningsMenuItems];
+  const allMenuItems = [...mainMenuItems, ...earningsMenuItems, ...accountMenuItems, ...supportMenuItems];
 
   // Theme-aware colors
   const colors = {
@@ -175,6 +194,72 @@ export default function DashboardLayout() {
               ))}
             </div>
           </div>
+
+          {/* ACCOUNT Section */}
+          <div className="mt-6">
+            {!sidebarCollapsed && (
+              <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2">
+                ACCOUNT
+              </p>
+            )}
+            <div className="space-y-1">
+              {accountMenuItems.map((item) => (
+                <div key={item.id} className="relative group">
+                  <button
+                    onClick={() => handleMenuClick(item.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${
+                      activeTab === item.id
+                        ? "bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10 text-[#FFD700] border border-[#FFD700]/30 shadow-[0_0_15px_rgba(255,215,0,0.15)]"
+                        : `${colors.textSecondary} hover:${colors.text} ${colors.bgHover} border border-transparent hover:border-white/10`
+                    }`}
+                  >
+                    <item.icon size={20} className={`flex-shrink-0 transition-all duration-300 ${activeTab === item.id ? "drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]" : ""}`} />
+                    {!sidebarCollapsed && <span className="text-sm font-medium">{item.label}</span>}
+                  </button>
+                  {/* Tooltip on hover when collapsed */}
+                  {sidebarCollapsed && (
+                    <div className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 ${colors.tooltipBg} backdrop-blur-xl border border-[#FFD700]/20 rounded-lg ${colors.text} text-sm font-medium whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-[0_0_20px_rgba(0,0,0,0.8)]`}>
+                      {item.label}
+                      <div className={`absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent ${colors.tooltipBorder}`} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SUPPORT Section */}
+          <div className="mt-6">
+            {!sidebarCollapsed && (
+              <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2">
+                SUPPORT
+              </p>
+            )}
+            <div className="space-y-1">
+              {supportMenuItems.map((item) => (
+                <div key={item.id} className="relative group">
+                  <button
+                    onClick={() => handleMenuClick(item.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${
+                      activeTab === item.id
+                        ? "bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10 text-[#FFD700] border border-[#FFD700]/30 shadow-[0_0_15px_rgba(255,215,0,0.15)]"
+                        : `${colors.textSecondary} hover:${colors.text} ${colors.bgHover} border border-transparent hover:border-white/10`
+                    }`}
+                  >
+                    <item.icon size={20} className={`flex-shrink-0 transition-all duration-300 ${activeTab === item.id ? "drop-shadow-[0_0_8px_rgba(255,215,0,0.5)]" : ""}`} />
+                    {!sidebarCollapsed && <span className="text-sm font-medium">{item.label}</span>}
+                  </button>
+                  {/* Tooltip on hover when collapsed */}
+                  {sidebarCollapsed && (
+                    <div className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 ${colors.tooltipBg} backdrop-blur-xl border border-[#FFD700]/20 rounded-lg ${colors.text} text-sm font-medium whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-[0_0_20px_rgba(0,0,0,0.8)]`}>
+                      {item.label}
+                      <div className={`absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent ${colors.tooltipBorder}`} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </nav>
 
         {/* Sign Out - at bottom */}
@@ -242,6 +327,36 @@ export default function DashboardLayout() {
           ))}
           <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2 mt-4">EARNINGS</p>
           {earningsMenuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 mb-1 ${
+                activeTab === item.id
+                  ? "bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10 text-[#FFD700] border border-[#FFD700]/30"
+                  : `${colors.textSecondary} hover:${colors.text} hover:bg-white/5`
+              }`}
+            >
+              <item.icon size={20} />
+              <span className="text-sm font-medium">{item.label}</span>
+            </button>
+          ))}
+          <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2 mt-4">ACCOUNT</p>
+          {accountMenuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 mb-1 ${
+                activeTab === item.id
+                  ? "bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10 text-[#FFD700] border border-[#FFD700]/30"
+                  : `${colors.textSecondary} hover:${colors.text} hover:bg-white/5`
+              }`}
+            >
+              <item.icon size={20} />
+              <span className="text-sm font-medium">{item.label}</span>
+            </button>
+          ))}
+          <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2 mt-4">SUPPORT</p>
+          {supportMenuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
