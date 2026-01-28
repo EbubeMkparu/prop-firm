@@ -144,16 +144,18 @@ export default function EcosystemPage() {
               <Image src={logo} alt="Pipzen" className="w-[120px]" />
             </Link>
             <div className="flex items-center gap-3">
-              <Link href="/">
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all">
-                  <HiOutlineArrowLeft className="w-4 h-4" />
-                  <span className="hidden sm:inline">Back to Home</span>
-                </button>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all"
+              >
+                <HiOutlineArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back to Dashboard</span>
               </Link>
-              <Link href="/login">
-                <button className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FFD700] to-orange-500 text-black text-sm font-bold hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all">
-                  Get Started
-                </button>
+              <Link
+                href="/login"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FFD700] to-orange-500 text-black text-sm font-bold hover:shadow-lg hover:shadow-[#FFD700]/30 transition-all"
+              >
+                Get Started
               </Link>
             </div>
           </div>
