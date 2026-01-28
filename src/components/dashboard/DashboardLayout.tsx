@@ -60,6 +60,8 @@ const supportMenuItems = [
   { icon: FiSettings, label: "Settings", id: "settings" },
 ];
 
+const ecosystemMenuItem = { icon: FiGlobe, label: "Ecosystem", id: "ecosystem", link: "/ecosystem" };
+
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -269,6 +271,31 @@ export default function DashboardLayout() {
               ))}
             </div>
           </div>
+
+          {/* ECOSYSTEM Section */}
+          <div className="mt-6">
+            {!sidebarCollapsed && (
+              <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2">
+                ECOSYSTEM
+              </p>
+            )}
+            <div className="relative group">
+              <Link
+                href="/ecosystem"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 ${colors.textSecondary} hover:text-[#FFD700] hover:bg-[#FFD700]/10 border border-transparent hover:border-[#FFD700]/30`}
+              >
+                <FiGlobe size={20} className="flex-shrink-0 transition-all duration-300" />
+                {!sidebarCollapsed && <span className="text-sm font-medium">Ecosystem</span>}
+              </Link>
+              {/* Tooltip on hover when collapsed */}
+              {sidebarCollapsed && (
+                <div className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-2 ${colors.tooltipBg} backdrop-blur-xl border border-[#FFD700]/20 rounded-lg ${colors.text} text-sm font-medium whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-[0_0_20px_rgba(0,0,0,0.8)]`}>
+                  Ecosystem
+                  <div className={`absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent ${colors.tooltipBorder}`} />
+                </div>
+              )}
+            </div>
+          </div>
         </nav>
 
         {/* Sign Out - at bottom */}
@@ -377,6 +404,15 @@ export default function DashboardLayout() {
               <span className="text-sm font-medium">{item.label}</span>
             </button>
           ))}
+          <p className="text-[10px] font-semibold text-[#FFD700]/50 uppercase tracking-wider px-3 mb-2 mt-4">ECOSYSTEM</p>
+          <Link
+            href="/ecosystem"
+            onClick={() => setSidebarOpen(false)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 mb-1 ${colors.textSecondary} hover:text-[#FFD700] hover:bg-[#FFD700]/10`}
+          >
+            <FiGlobe size={20} />
+            <span className="text-sm font-medium">Ecosystem</span>
+          </Link>
         </nav>
         <div className={`absolute bottom-0 left-0 right-0 p-4 border-t ${colors.border}`}>
           <Link href="/signin" className={`flex items-center gap-3 px-3 py-2.5 ${colors.textSecondary} hover:text-red-400 rounded-xl transition-all duration-300`}>
