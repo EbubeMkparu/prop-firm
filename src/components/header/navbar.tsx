@@ -46,14 +46,14 @@ const NavbarReact = () => {
   }, [pathname]);
   return (
     <div className="hidden lg:block">
-      <nav className="bg-white/5 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/10 flex items-center justify-between shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-[#FFD700]/20 transition-all duration-300">
+      <nav className="bg-white/5 backdrop-blur-xl px-4 py-2.5 rounded-full border border-white/10 flex items-center shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:border-[#FFD700]/20 transition-all duration-300">
         {navData.map((menu, i) => {
           if (menu.items) {
             return (
               <div key={i}>
                 <HoverCard openDelay={100}>
                   <HoverCardTrigger
-                    className={`text-sm font-medium cursor-pointer mr-5 flex gap-1 items-center transition-all duration-200 hover:text-[#FFD700] ${
+                    className={`text-[13px] font-medium cursor-pointer mr-3 lg:mr-4 flex gap-1 items-center transition-all duration-200 hover:text-[#FFD700] ${
                       menu.isActive ? "text-[#FFD700]" : "text-gray-300"
                     } `}
                   >
@@ -85,7 +85,7 @@ const NavbarReact = () => {
             <Link
               href={menu.link}
               key={i}
-              className={`text-sm font-medium mr-5 tracking-tight transition-all duration-200 hover:text-[#FFD700] ${
+              className={`text-[13px] font-medium mr-3 lg:mr-4 tracking-tight transition-all duration-200 hover:text-[#FFD700] ${
                 menu.isActive ? "text-[#FFD700]" : "text-gray-300"
               } `}
             >
