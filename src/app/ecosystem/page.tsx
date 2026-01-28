@@ -45,48 +45,48 @@ export default function EcosystemPage() {
       name: "PIPZEN",
       tagline: "Prop Trading Firm",
       description:
-        "Get funded up to $200K and trade with our capital. Keep up to 90% of your profits.",
+        "Get funded up to $400K and trade with our capital. Keep up to 90% of your profits with instant payouts.",
       icon: HiOutlineArrowTrendingUp,
       color: "from-[#FFD700] to-orange-500",
       glowColor: "shadow-[#FFD700]/50",
-      url: "https://www.pipzen.io",
-      features: ["$200K Funding", "90% Profit Split", "24hr Payouts"],
+      url: "https://pipzen.io",
+      features: ["$400K Funding", "90% Profit Split", "Instant Payouts", "No Time Limits"],
     },
     {
       id: "crymadx",
       name: "CRYMADX",
       tagline: "Crypto Exchange",
       description:
-        "Trade crypto with lightning-fast execution, low fees, and advanced charting tools.",
+        "Next-generation crypto exchange with lightning-fast execution, institutional-grade security, and advanced trading tools.",
       icon: HiOutlineBolt,
       color: "from-cyan-400 to-blue-500",
       glowColor: "shadow-cyan-500/50",
-      url: "https://www.crymadx.io",
-      features: ["100+ Pairs", "0.1% Fees", "Instant Swaps"],
+      url: "https://crymadx.io",
+      features: ["500+ Pairs", "0.05% Fees", "Instant Swaps", "Copy Trading"],
     },
     {
       id: "crymadcash",
-      name: "CRYMADCASH",
-      tagline: "Virtual Banking",
+      name: "CRYMAD CASH",
+      tagline: "Digital Banking",
       description:
-        "Your digital wallet for the future. Send, receive, and manage your crypto assets.",
+        "The future of digital banking. Virtual cards, instant global transfers, and seamless crypto-to-fiat conversion.",
       icon: HiOutlineBuildingOffice2,
       color: "from-emerald-400 to-green-500",
       glowColor: "shadow-emerald-500/50",
       url: "https://production-crmdx.web.app/sign-up",
-      features: ["Virtual Cards", "Instant Transfers", "Multi-Currency"],
+      features: ["Virtual Cards", "Global Transfers", "Multi-Currency", "Crypto Debit"],
     },
     {
       id: "crymadhash",
-      name: "CRYMADHASH",
+      name: "CRYMAD HASH",
       tagline: "Cloud Mining",
       description:
-        "Mine cryptocurrency without the hardware. Earn passive income with our mining pools.",
+        "Enterprise-grade cloud mining infrastructure. Earn passive income without expensive hardware or electricity costs.",
       icon: HiOutlineCpuChip,
       color: "from-purple-400 to-pink-500",
       glowColor: "shadow-purple-500/50",
-      url: "https://www.crymadhash.tech",
-      features: ["Cloud Mining", "Daily Payouts", "No Hardware"],
+      url: "https://crymadhsh.tech",
+      features: ["Cloud Mining", "Daily Payouts", "No Hardware", "Auto-Compound"],
     },
   ];
 
@@ -152,35 +152,47 @@ export default function EcosystemPage() {
       {/* Main Content */}
       <main className="relative z-10 pt-32 pb-20">
         <div className="container mx-auto px-6">
-          {/* Hero Section */}
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
-              <HiOutlineSparkles className="w-4 h-4 text-[#FFD700]" />
-              <span className="text-sm text-gray-400">Explore The Future</span>
+          {/* Hero Section - CryptoMadness as THE HEAD */}
+          <div className="text-center mb-24">
+            {/* Premium Badge */}
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-[#FFD700]/10 to-orange-500/10 border border-[#FFD700]/30 mb-10 backdrop-blur-sm">
+              <div className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" />
+              <span className="text-sm font-semibold text-[#FFD700] tracking-wide">THE PARENT ECOSYSTEM</span>
+              <div className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" />
             </div>
 
-            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black text-white leading-[0.85] tracking-tighter mb-6">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] via-yellow-300 to-orange-400">
-                CRYPTO
-              </span>
-              <br />
-              <span className="text-white">MADNESS</span>
-            </h1>
+            {/* Main Logo/Title */}
+            <div className="relative inline-block mb-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-[#FFD700] via-yellow-300 to-orange-400 blur-[100px] opacity-30" />
+              <h1 className="relative text-7xl md:text-9xl lg:text-[12rem] font-black leading-[0.85] tracking-tighter">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] via-yellow-300 to-orange-400 drop-shadow-[0_0_50px_rgba(255,215,0,0.5)]">
+                  CRYPTO
+                </span>
+                <br />
+                <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">MADNESS</span>
+              </h1>
+            </div>
 
-            <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-8">
-              One ecosystem. Infinite possibilities. Building the future of
-              digital finance.
+            <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+              The <span className="text-white font-semibold">parent ecosystem</span> powering the future of digital finance.
+              One vision. Multiple platforms. Infinite possibilities.
             </p>
 
+            {/* CryptoMadness Link - Premium Style */}
             <a
               href="https://www.cryptomadness.info"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-[#FFD700] hover:gap-4 transition-all"
+              className="group inline-flex items-center gap-4 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#FFD700]/20 to-orange-500/20 border border-[#FFD700]/40 hover:border-[#FFD700] hover:shadow-[0_0_40px_rgba(255,215,0,0.3)] transition-all duration-500"
             >
-              <HiOutlineGlobeAlt className="w-5 h-5" />
-              <span className="font-semibold">www.cryptomadness.info</span>
-              <HiOutlineArrowUpRight className="w-5 h-5" />
+              <div className="p-2 rounded-xl bg-gradient-to-br from-[#FFD700] to-orange-500">
+                <HiOutlineGlobeAlt className="w-6 h-6 text-black" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs text-gray-500 uppercase tracking-wider">Visit Headquarters</p>
+                <span className="text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors">www.cryptomadness.info</span>
+              </div>
+              <HiOutlineArrowUpRight className="w-6 h-6 text-[#FFD700] group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </a>
           </div>
 
