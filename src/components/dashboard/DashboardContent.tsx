@@ -80,6 +80,8 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
     borderLight: isDark ? "border-[#FFD700]/10" : "border-[#FFD700]/20",
     gradientText: isDark ? "from-white to-gray-400" : "from-gray-900 to-gray-600",
     hoverBg: isDark ? "hover:bg-[#FFD700]/5" : "hover:bg-[#FFD700]/10",
+    gold: isDark ? "text-[#FFD700]" : "text-amber-600",
+    goldBold: isDark ? "text-[#FFD700]" : "text-amber-700",
   };
 
   // Use fixed seeds for consistent SSR/client rendering
@@ -868,7 +870,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
-                      <p className="text-[#FFD700] font-bold">{challenge.phase1Target}%</p>
+                      <p className={`${colors.goldBold} font-bold`}>{challenge.phase1Target}%</p>
                     </div>
                     <div>
                       <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
@@ -888,7 +890,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Profit Target</p>
-                      <p className="text-[#FFD700] font-bold">{challenge.phase2Target}%</p>
+                      <p className={`${colors.goldBold} font-bold`}>{challenge.phase2Target}%</p>
                     </div>
                     <div>
                       <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"} mb-1`}>Min Trading Days</p>
@@ -994,8 +996,8 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
               { icon: FiUsers, title: "24/7 Support", desc: "Dedicated support team ready to help anytime" },
             ].map((benefit, i) => (
               <div key={i} className={`${isDark ? "bg-[#111]" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
-                <div className="w-10 h-10 rounded-xl bg-[#FFD700]/10 flex items-center justify-center mb-3 border border-[#FFD700]/20">
-                  <benefit.icon className="text-[#FFD700]" size={18} />
+                <div className={`w-10 h-10 rounded-xl ${isDark ? "bg-[#FFD700]/10 border-[#FFD700]/20" : "bg-amber-50 border-amber-200"} flex items-center justify-center mb-3 border`}>
+                  <benefit.icon className={colors.gold} size={18} />
                 </div>
                 <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>{benefit.title}</p>
                 <p className={`text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>{benefit.desc}</p>
@@ -1005,10 +1007,10 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
         </div>
 
         {/* FAQ Teaser */}
-        <div className={`${isDark ? "bg-gradient-to-r from-[#FFD700]/10 to-[#FFA500]/5" : "bg-gradient-to-r from-[#FFD700]/20 to-[#FFA500]/10"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} p-6 flex flex-col md:flex-row items-center justify-between gap-4`}>
+        <div className={`${isDark ? "bg-gradient-to-r from-[#FFD700]/10 to-[#FFA500]/5" : "bg-gradient-to-r from-amber-50 to-orange-50"} rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-amber-300"} p-6 flex flex-col md:flex-row items-center justify-between gap-4`}>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#FFD700]/20 flex items-center justify-center">
-              <FiHelpCircle className="text-[#FFD700]" size={24} />
+            <div className={`w-12 h-12 rounded-xl ${isDark ? "bg-[#FFD700]/20" : "bg-amber-100"} flex items-center justify-center`}>
+              <FiHelpCircle className={colors.goldBold} size={24} />
             </div>
             <div>
               <p className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Have questions?</p>
@@ -1031,14 +1033,14 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
   if (activeTab === "competitions") {
     return (
       <div className="p-6 space-y-6">
-        <div className="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-6">
-          <h3 className="text-xl font-semibold text-white mb-4">Active Competitions</h3>
+        <div className={`${isDark ? "bg-[#0a0a0a]" : "bg-white"} rounded-2xl border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} p-6`}>
+          <h3 className={`text-xl font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-4`}>Active Competitions</h3>
           <div className="text-center py-12">
-            <div className="w-16 h-16 rounded-full bg-[#111] flex items-center justify-center mx-auto mb-4">
-              <FiTrendingUp className="text-[#FFD700]" size={28} />
+            <div className={`w-16 h-16 rounded-full ${isDark ? "bg-[#111]" : "bg-gray-100"} flex items-center justify-center mx-auto mb-4`}>
+              <FiTrendingUp className={colors.goldBold} size={28} />
             </div>
-            <p className="text-gray-400 mb-2">No active competitions</p>
-            <p className="text-sm text-gray-600">Check back soon for upcoming trading competitions</p>
+            <p className={isDark ? "text-gray-400" : "text-gray-500"}>No active competitions</p>
+            <p className={`text-sm ${isDark ? "text-gray-600" : "text-gray-400"}`}>Check back soon for upcoming trading competitions</p>
           </div>
         </div>
       </div>
@@ -1154,7 +1156,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
             <div className="flex flex-col items-center">
               <div className="relative">
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                  <svg className="w-10 h-10 text-[#FFD700] drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className={`w-10 h-10 ${isDark ? "text-[#FFD700]" : "text-amber-500"}`} viewBox="0 0 24 24" fill="currentColor">
                     <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/>
                   </svg>
                 </div>
@@ -1166,8 +1168,8 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
               <p className={`font-bold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>{topTraders[0].name}</p>
               <p className="text-green-500 font-bold text-xl">+${topTraders[0].profit.toLocaleString()}</p>
               <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>+{topTraders[0].returnPct}%</p>
-              <div className={`mt-3 h-32 w-24 bg-gradient-to-b from-[#FFD700]/30 to-[#FFD700]/10 rounded-t-xl flex items-center justify-center border-t border-x border-[#FFD700]/30`}>
-                <span className="text-4xl font-bold text-[#FFD700]">1</span>
+              <div className={`mt-3 h-32 w-24 ${isDark ? "bg-gradient-to-b from-[#FFD700]/30 to-[#FFD700]/10 border-[#FFD700]/30" : "bg-gradient-to-b from-amber-200 to-amber-50 border-amber-300"} rounded-t-xl flex items-center justify-center border-t border-x`}>
+                <span className={`text-4xl font-bold ${colors.goldBold}`}>1</span>
               </div>
             </div>
 
@@ -1306,8 +1308,8 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                       </td>
                       <td className="py-4 px-4 text-right hidden xl:table-cell">
                         <div className="flex items-center justify-end gap-2">
-                          <FiZap className={trader.streak >= 5 ? "text-[#FFD700]" : "text-gray-500"} size={14} />
-                          <span className={`${trader.streak >= 5 ? "text-[#FFD700]" : isDark ? "text-gray-400" : "text-gray-500"}`}>
+                          <FiZap className={trader.streak >= 5 ? (isDark ? "text-[#FFD700]" : "text-amber-500") : "text-gray-500"} size={14} />
+                          <span className={`${trader.streak >= 5 ? (isDark ? "text-[#FFD700]" : "text-amber-600") : isDark ? "text-gray-400" : "text-gray-500"}`}>
                             {trader.streak} days
                           </span>
                         </div>
@@ -1326,10 +1328,10 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           <div className={`p-4 border-t ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} flex items-center justify-between`}>
             <p className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>Showing 1-10 of 1,247 traders</p>
             <div className="flex gap-2">
-              <button className={`px-3 py-1.5 ${isDark ? "bg-[#111] text-gray-400 border-[#1a1a1a]" : "bg-gray-100 text-gray-500 border-gray-200"} border rounded-lg text-sm hover:text-[#FFD700] transition-colors`}>
+              <button className={`px-3 py-1.5 ${isDark ? "bg-[#111] text-gray-400 border-[#1a1a1a] hover:text-[#FFD700]" : "bg-gray-100 text-gray-500 border-gray-200 hover:text-amber-600"} border rounded-lg text-sm transition-colors`}>
                 Previous
               </button>
-              <button className={`px-3 py-1.5 ${isDark ? "bg-[#111] text-gray-400 border-[#1a1a1a]" : "bg-gray-100 text-gray-500 border-gray-200"} border rounded-lg text-sm hover:text-[#FFD700] transition-colors`}>
+              <button className={`px-3 py-1.5 ${isDark ? "bg-[#111] text-gray-400 border-[#1a1a1a] hover:text-[#FFD700]" : "bg-gray-100 text-gray-500 border-gray-200 hover:text-amber-600"} border rounded-lg text-sm transition-colors`}>
                 Next
               </button>
             </div>
@@ -1432,13 +1434,13 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
         <div className={`${isDark ? "bg-[#0a0a0a]/60" : "bg-white/80"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/20" : "border-[#FFD700]/30"} overflow-hidden`}>
           {/* Table Header */}
           <div className={`grid grid-cols-12 gap-4 px-6 py-3 ${isDark ? "bg-[#111]" : "bg-gray-50"} border-b ${isDark ? "border-[#1a1a1a]" : "border-gray-200"}`}>
-            <div className="col-span-1 text-xs font-semibold text-[#FFD700]">TIME</div>
-            <div className="col-span-2 text-xs font-semibold text-[#FFD700]">CURRENCY</div>
-            <div className="col-span-4 text-xs font-semibold text-[#FFD700]">EVENT</div>
-            <div className="col-span-1 text-xs font-semibold text-[#FFD700] text-center">IMPACT</div>
-            <div className="col-span-1 text-xs font-semibold text-[#FFD700] text-right">FORECAST</div>
-            <div className="col-span-1 text-xs font-semibold text-[#FFD700] text-right">PREVIOUS</div>
-            <div className="col-span-2 text-xs font-semibold text-[#FFD700] text-right">ACTUAL</div>
+            <div className={`col-span-1 text-xs font-semibold ${colors.goldBold}`}>TIME</div>
+            <div className={`col-span-2 text-xs font-semibold ${colors.goldBold}`}>CURRENCY</div>
+            <div className={`col-span-4 text-xs font-semibold ${colors.goldBold}`}>EVENT</div>
+            <div className={`col-span-1 text-xs font-semibold ${colors.goldBold} text-center`}>IMPACT</div>
+            <div className={`col-span-1 text-xs font-semibold ${colors.goldBold} text-right`}>FORECAST</div>
+            <div className={`col-span-1 text-xs font-semibold ${colors.goldBold} text-right`}>PREVIOUS</div>
+            <div className={`col-span-2 text-xs font-semibold ${colors.goldBold} text-right`}>ACTUAL</div>
           </div>
 
           {/* Events */}
@@ -1520,11 +1522,11 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
             { name: "DXTrade", desc: "Web-based trading", Icon: FiGlobe, color: "#3b82f6" },
             { name: "Mobile App", desc: "Trade on the go", Icon: FiSmartphone, color: "#a855f7" },
           ].map((platform, i) => (
-            <div key={i} className="bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a] p-6 hover:border-[#FFD700]/30 transition-colors">
+            <div key={i} className={`${isDark ? "bg-[#0a0a0a] border-[#1a1a1a]" : "bg-white border-gray-200"} rounded-2xl border p-6 hover:border-[#FFD700]/30 transition-colors`}>
               <div className="mb-3"><platform.Icon size={32} style={{ color: platform.color }} /></div>
-              <p className="text-lg font-semibold text-white mb-1">{platform.name}</p>
-              <p className="text-sm text-gray-400 mb-4">{platform.desc}</p>
-              <button className="px-4 py-2 bg-[#111] text-[#FFD700] font-medium rounded-lg hover:bg-[#1a1a1a] transition-colors">
+              <p className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-1`}>{platform.name}</p>
+              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"} mb-4`}>{platform.desc}</p>
+              <button className={`px-4 py-2 ${isDark ? "bg-[#111] text-[#FFD700] hover:bg-[#1a1a1a]" : "bg-gray-100 text-amber-600 hover:bg-gray-200"} font-medium rounded-lg transition-colors`}>
                 Download
               </button>
             </div>
@@ -1609,7 +1611,7 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
                 <div key={i} className={`${isDark ? "bg-[#111]/80" : "bg-gray-50"} rounded-xl p-4 border ${isDark ? "border-[#1a1a1a]" : "border-gray-200"} hover:border-[#FFD700]/30 transition-colors`}>
                   <div className="flex items-start justify-between mb-2">
                     <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{rule.title}</p>
-                    <span className="px-3 py-1 bg-[#FFD700]/20 text-[#FFD700] text-sm font-semibold rounded-lg">{rule.value}</span>
+                    <span className={`px-3 py-1 ${isDark ? "bg-[#FFD700]/20 text-[#FFD700]" : "bg-amber-100 text-amber-700"} text-sm font-semibold rounded-lg`}>{rule.value}</span>
                   </div>
                   <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>{rule.desc}</p>
                 </div>
@@ -1619,9 +1621,9 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
         ))}
 
         {/* Important Notice */}
-        <div className={`bg-gradient-to-br from-[#FFD700]/10 via-[#0a0a0a]/80 to-[#0a0a0a] backdrop-blur-xl rounded-2xl border border-[#FFD700]/30 p-6`}>
+        <div className={`${isDark ? "bg-gradient-to-br from-[#FFD700]/10 via-[#0a0a0a]/80 to-[#0a0a0a]" : "bg-gradient-to-br from-amber-50 via-white to-white"} backdrop-blur-xl rounded-2xl border ${isDark ? "border-[#FFD700]/30" : "border-amber-300"} p-6`}>
           <div className="flex items-start gap-3">
-            <FiAlertTriangle className="text-[#FFD700] flex-shrink-0 mt-1" size={20} />
+            <FiAlertTriangle className={colors.goldBold + " flex-shrink-0 mt-1"} size={20} />
             <div>
               <h4 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"} mb-2`}>Important Notice</h4>
               <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
