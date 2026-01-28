@@ -3143,22 +3143,22 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           </div>
 
           {/* Quick Stats Row */}
-          <div className="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#FFD700]/10">
+          <div className="grid grid-cols-4 gap-3 mt-4 pt-4 border-t border-[#1a1a1a]">
             <div className="text-center">
-              <p className="text-xs text-gray-400">To Target</p>
-              <p className="text-green-400 font-bold">${(55000 - currentBalance).toLocaleString()}</p>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">To Target</p>
+              <p className="text-green-400 font-black text-sm">${(55000 - currentBalance).toLocaleString()}</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-400">DD Buffer</p>
-              <p className="text-[#FFD700] font-bold">${(currentBalance - 45000).toLocaleString()}</p>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">DD Buffer</p>
+              <p className="text-[#FFD700] font-black text-sm">${(currentBalance - 45000).toLocaleString()}</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-400">Today P&L</p>
-              <p className="text-green-400 font-bold">+$342</p>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Today P&L</p>
+              <p className="text-green-400 font-black text-sm">+$342</p>
             </div>
             <div className="text-center">
-              <p className="text-xs text-gray-400">Total P&L</p>
-              <p className="text-green-400 font-bold">+${totalPnL.toLocaleString()}</p>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Total P&L</p>
+              <p className="text-green-400 font-black text-sm">+${totalPnL.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -3168,17 +3168,16 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           {/* Account Balance Card - Expandable */}
           <div
             onClick={() => setExpandedCard("balance")}
-            className="bg-gradient-to-br from-[#0a0a0a]/80 to-[#111]/60 backdrop-blur-xl rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/40 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,215,0,0.15)] cursor-pointer group relative overflow-hidden"
+            className="bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] cursor-pointer group"
           >
-            <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#FFD700]/10 rounded-full blur-2xl group-hover:bg-[#FFD700]/20 transition-all" />
-            <div className="flex items-start justify-between relative">
+            <div className="flex items-start justify-between">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <FiDollarSign className="text-[#FFD700]" size={20} style={{ filter: "drop-shadow(0 0 4px #FFD700)" }} />
-                  <p className="text-xs text-gray-400">ACCOUNT BALANCE</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <FiDollarSign className="text-[#FFD700]" size={20} />
+                  <p className="text-[11px] text-gray-400 font-bold tracking-widest uppercase">ACCOUNT BALANCE</p>
                 </div>
-                <p className="text-3xl font-bold text-[#FFD700]">${(currentBalance / 1000).toFixed(1)}K</p>
-                <p className="text-xs text-green-400 mt-1">+${totalPnL.toLocaleString()} ({((totalPnL/50000)*100).toFixed(1)}%)</p>
+                <p className="text-3xl font-black text-[#FFD700] tracking-tight">${(currentBalance / 1000).toFixed(1)}K</p>
+                <p className="text-xs text-green-400 font-bold mt-1">+${totalPnL.toLocaleString()} ({((totalPnL/50000)*100).toFixed(1)}%)</p>
               </div>
               <FiMaximize2 className="text-gray-500 group-hover:text-[#FFD700] transition-colors" size={16} />
             </div>
@@ -3187,27 +3186,26 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           {/* Total Trades Card - Expandable */}
           <div
             onClick={() => setExpandedCard("trades")}
-            className="bg-gradient-to-br from-[#0a0a0a]/80 to-[#111]/60 backdrop-blur-xl rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/40 transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,215,0,0.15)] cursor-pointer group relative overflow-hidden"
+            className="bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] cursor-pointer group"
           >
-            <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-all" />
-            <div className="flex items-start justify-between relative">
+            <div className="flex items-start justify-between">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <FiZap className="text-[#FFD700]" size={20} style={{ filter: "drop-shadow(0 0 4px #FFD700)" }} />
-                  <p className="text-xs text-gray-400">TOTAL TRADES</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <FiZap className="text-[#FFD700]" size={20} />
+                  <p className="text-[11px] text-gray-400 font-bold tracking-widest uppercase">TOTAL TRADES</p>
                 </div>
-                <p className="text-3xl font-bold text-white">{totalTrades}</p>
-                <p className="text-xs text-[#FFD700] mt-1">{winRate}% win rate</p>
+                <p className="text-3xl font-black text-white tracking-tight">{totalTrades}</p>
+                <p className="text-xs text-[#FFD700] font-bold mt-1">{winRate}% win rate</p>
               </div>
               <FiMaximize2 className="text-gray-500 group-hover:text-[#FFD700] transition-colors" size={16} />
             </div>
             {/* Mini bar chart */}
-            <div className="flex items-end justify-between h-10 gap-0.5 mt-3">
+            <div className="flex items-end justify-between h-10 gap-1 mt-3">
               {[65, 45, 80, 55, 70, 40, 85, 60].map((height, i) => (
                 <div
                   key={i}
-                  className="flex-1 bg-[#FFD700] rounded-t transition-all duration-300 group-hover:bg-green-500"
-                  style={{ height: `${height}%`, opacity: 0.4 + (height / 100) * 0.6 }}
+                  className="flex-1 bg-[#FFD700] rounded-t"
+                  style={{ height: `${height}%`, opacity: 0.5 + (height / 100) * 0.5 }}
                 />
               ))}
             </div>
@@ -3217,141 +3215,130 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
 
       {/* ROW 2: Middle Row - Progress Circles, Calendar, Session Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left: Circular Progress Gauges - EXPANDED */}
+        {/* Left: Circular Progress Gauges - SHARP & CLEAN */}
         <div
           onClick={() => setExpandedCard("metrics")}
-          className="lg:col-span-4 bg-gradient-to-br from-[#0a0a0a]/80 to-[#111]/60 backdrop-blur-xl rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/40 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.15)] relative overflow-hidden cursor-pointer"
+          className="lg:col-span-4 bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] relative overflow-hidden cursor-pointer"
         >
-          {/* Background glow */}
-          <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-[#FFD700]/10 rounded-full blur-3xl" />
-          <div className="absolute -top-10 -right-10 w-24 h-24 bg-green-500/10 rounded-full blur-3xl" />
-
-          <div className="flex items-center justify-between mb-4 relative">
-            <p className="text-white font-semibold flex items-center gap-2">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-white font-bold flex items-center gap-2 tracking-wide">
               <FiBarChart2 className="text-[#FFD700]" size={18} /> KEY METRICS
             </p>
             <FiMaximize2 className="text-gray-500 hover:text-[#FFD700] transition-colors" size={16} />
           </div>
 
-          <div className="space-y-3 relative">
+          <div className="space-y-3">
             {/* Profit Target Gauge */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#FFD700]/5 border border-[#FFD700]/10 hover:border-[#FFD700]/30 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111] border border-[#FFD700]/20 hover:border-[#FFD700]/40 transition-all duration-300 cursor-pointer">
               <div className="relative w-14 h-14 flex-shrink-0">
                 <svg className="w-14 h-14 transform -rotate-90">
-                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="4" fill="none" />
+                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="5" fill="none" />
                   <circle
                     cx="28" cy="28" r="24"
                     stroke="#FFD700"
-                    strokeWidth="4"
+                    strokeWidth="5"
                     fill="none"
                     strokeDasharray={`${(challengeData.currentProfitPercent / challengeData.profitTarget) * 151} 151`}
                     strokeLinecap="round"
-                    style={{ filter: "drop-shadow(0 0 6px #FFD700)" }}
                     className="transition-all duration-500"
                   />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-[#FFD700]">
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-black text-[#FFD700]">
                   {Math.round((challengeData.currentProfitPercent / challengeData.profitTarget) * 100)}%
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-white font-medium text-sm">PROFIT TARGET</p>
-                  <span className="text-[#FFD700] text-[10px] font-bold bg-[#FFD700]/10 px-1.5 py-0.5 rounded flex-shrink-0 flex items-center"><FiTarget size={10} /></span>
+                  <p className="text-white font-bold text-sm tracking-wide">PROFIT TARGET</p>
+                  <span className="text-[#FFD700] text-[10px] font-black bg-[#FFD700]/20 px-1.5 py-0.5 rounded"><FiTarget size={10} /></span>
                 </div>
-                <p className="text-xs text-[#FFD700]">{challengeData.currentProfitPercent.toFixed(1)}% / {challengeData.profitTarget}%</p>
-                <div className="w-full h-1.5 bg-[#1a1a1a] rounded-full mt-1.5 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-[#FFD700] to-[#FFA500] rounded-full" style={{ width: `${(challengeData.currentProfitPercent / challengeData.profitTarget) * 100}%` }} />
+                <p className="text-xs text-[#FFD700] font-semibold mt-0.5">{challengeData.currentProfitPercent.toFixed(1)}% / {challengeData.profitTarget}%</p>
+                <div className="w-full h-2 bg-[#1a1a1a] rounded-full mt-2 overflow-hidden">
+                  <div className="h-full bg-[#FFD700] rounded-full" style={{ width: `${(challengeData.currentProfitPercent / challengeData.profitTarget) * 100}%` }} />
                 </div>
               </div>
             </div>
 
             {/* Win Rate Gauge */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-green-500/5 border border-green-500/10 hover:border-green-500/30 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111] border border-green-500/20 hover:border-green-500/40 transition-all duration-300 cursor-pointer">
               <div className="relative w-14 h-14 flex-shrink-0">
                 <svg className="w-14 h-14 transform -rotate-90">
-                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="4" fill="none" />
+                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="5" fill="none" />
                   <circle
                     cx="28" cy="28" r="24"
                     stroke="#22c55e"
-                    strokeWidth="4"
+                    strokeWidth="5"
                     fill="none"
                     strokeDasharray={`${(winRate / 100) * 151} 151`}
                     strokeLinecap="round"
-                    style={{ filter: "drop-shadow(0 0 6px #22c55e)" }}
                     className="transition-all duration-500"
                   />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-green-500">
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-black text-green-500">
                   {winRate}%
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-white font-medium text-sm">WIN RATE</p>
-                  <span className="text-green-500 text-[10px] font-bold bg-green-500/10 px-1.5 py-0.5 rounded flex-shrink-0 flex items-center"><FiCheckCircle size={10} /></span>
+                  <p className="text-white font-bold text-sm tracking-wide">WIN RATE</p>
+                  <span className="text-green-500 text-[10px] font-black bg-green-500/20 px-1.5 py-0.5 rounded"><FiCheckCircle size={10} /></span>
                 </div>
-                <p className="text-xs text-green-500">{Math.round(totalTrades * winRate / 100)} wins of {totalTrades}</p>
-                <div className="w-full h-1.5 bg-[#1a1a1a] rounded-full mt-1.5 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full" style={{ width: `${winRate}%` }} />
+                <p className="text-xs text-green-500 font-semibold mt-0.5">{Math.round(totalTrades * winRate / 100)} wins of {totalTrades}</p>
+                <div className="w-full h-2 bg-[#1a1a1a] rounded-full mt-2 overflow-hidden">
+                  <div className="h-full bg-green-500 rounded-full" style={{ width: `${winRate}%` }} />
                 </div>
               </div>
             </div>
 
             {/* Drawdown Gauge */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-orange-500/5 border border-orange-500/10 hover:border-orange-500/30 transition-all duration-300 cursor-pointer group">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111] border border-orange-500/20 hover:border-orange-500/40 transition-all duration-300 cursor-pointer">
               <div className="relative w-14 h-14 flex-shrink-0">
                 <svg className="w-14 h-14 transform -rotate-90">
-                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="4" fill="none" />
+                  <circle cx="28" cy="28" r="24" stroke="#1a1a1a" strokeWidth="5" fill="none" />
                   <circle
                     cx="28" cy="28" r="24"
                     stroke="#f97316"
-                    strokeWidth="4"
+                    strokeWidth="5"
                     fill="none"
                     strokeDasharray={`${(challengeData.currentDrawdown / challengeData.maxDrawdown) * 151} 151`}
                     strokeLinecap="round"
-                    style={{ filter: "drop-shadow(0 0 6px #f97316)" }}
                     className="transition-all duration-500"
                   />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-orange-500">
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-black text-orange-500">
                   {Math.round((challengeData.currentDrawdown / challengeData.maxDrawdown) * 100)}%
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-white font-medium text-sm">DRAWDOWN</p>
-                  <span className="text-orange-500 text-[10px] font-bold bg-orange-500/10 px-1.5 py-0.5 rounded flex-shrink-0 flex items-center"><FiAlertTriangle size={10} /></span>
+                  <p className="text-white font-bold text-sm tracking-wide">DRAWDOWN</p>
+                  <span className="text-orange-500 text-[10px] font-black bg-orange-500/20 px-1.5 py-0.5 rounded"><FiAlertTriangle size={10} /></span>
                 </div>
-                <p className="text-xs text-orange-500">{challengeData.currentDrawdown}% / {challengeData.maxDrawdown}% max</p>
-                <div className="w-full h-1.5 bg-[#1a1a1a] rounded-full mt-1.5 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full" style={{ width: `${(challengeData.currentDrawdown / challengeData.maxDrawdown) * 100}%` }} />
+                <p className="text-xs text-orange-500 font-semibold mt-0.5">{challengeData.currentDrawdown}% / {challengeData.maxDrawdown}% max</p>
+                <div className="w-full h-2 bg-[#1a1a1a] rounded-full mt-2 overflow-hidden">
+                  <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(challengeData.currentDrawdown / challengeData.maxDrawdown) * 100}%` }} />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Middle: Calendar Heatmap - ENHANCED - Takes remaining space */}
-        <div className="lg:col-span-8 bg-[#0a0a0a]/60 backdrop-blur-xl rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.15)] relative overflow-hidden">
-          {/* Glow effect */}
-          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-green-500/10 rounded-full blur-3xl" />
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 rounded-full blur-3xl" />
-
+        {/* Middle: Calendar Heatmap - SHARP & CLEAN */}
+        <div className="lg:col-span-8 bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-5 hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.15)] relative overflow-hidden">
           {/* Header with stats */}
-          <div className="flex items-center justify-between mb-4 relative">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-white font-semibold">TRADING CALENDAR</p>
-              <p className="text-xs text-gray-500">January 2025</p>
+              <p className="text-white font-bold tracking-wide">TRADING CALENDAR</p>
+              <p className="text-xs text-gray-500 font-medium">January 2025</p>
             </div>
             <div className="flex gap-3">
-              <div className="text-center px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <p className="text-green-400 text-xs">Profits</p>
-                <p className="text-white font-bold text-sm">+${calendarTotals.profits.toLocaleString()}</p>
+              <div className="text-center px-3 py-1.5 bg-[#111] border border-green-500/30 rounded-lg">
+                <p className="text-green-400 text-[10px] font-bold uppercase tracking-wider">Profits</p>
+                <p className="text-white font-black text-sm">+${calendarTotals.profits.toLocaleString()}</p>
               </div>
-              <div className="text-center px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-red-400 text-xs">Losses</p>
-                <p className="text-white font-bold text-sm">-${calendarTotals.losses.toLocaleString()}</p>
+              <div className="text-center px-3 py-1.5 bg-[#111] border border-red-500/30 rounded-lg">
+                <p className="text-red-400 text-[10px] font-bold uppercase tracking-wider">Losses</p>
+                <p className="text-white font-black text-sm">-${calendarTotals.losses.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -3394,37 +3381,37 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           </div>
 
           {/* Bottom Stats - P&L and Balance */}
-          <div className="mt-4 pt-3 border-t border-[#FFD700]/10 space-y-3">
+          <div className="mt-4 pt-3 border-t border-[#1a1a1a] space-y-3">
             {/* P&L and Balance Row */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-green-500/10 rounded-lg p-3 border border-green-500/20">
-                <p className="text-xs text-gray-400 mb-1">Month P&L</p>
-                <p className="text-green-400 font-bold text-lg">+${(calendarTotals.profits - calendarTotals.losses).toLocaleString()}</p>
+              <div className="bg-[#111] rounded-lg p-3 border border-green-500/30">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Month P&L</p>
+                <p className="text-green-400 font-black text-lg">+${(calendarTotals.profits - calendarTotals.losses).toLocaleString()}</p>
               </div>
-              <div className="bg-[#FFD700]/10 rounded-lg p-3 border border-[#FFD700]/20">
-                <p className="text-xs text-gray-400 mb-1">Balance</p>
-                <p className="text-[#FFD700] font-bold text-lg">${currentBalance.toLocaleString()}</p>
+              <div className="bg-[#111] rounded-lg p-3 border border-[#FFD700]/30">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Balance</p>
+                <p className="text-[#FFD700] font-black text-lg">${currentBalance.toLocaleString()}</p>
               </div>
             </div>
             {/* Days Stats Row */}
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.5)]" />
-                  <span className="text-green-400 font-medium">{calendarTotals.winDays} win</span>
+                  <div className="w-3 h-3 rounded bg-green-500" />
+                  <span className="text-green-400 font-bold">{calendarTotals.winDays} win</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]" />
-                  <span className="text-red-400 font-medium">{calendarTotals.lossDays} loss</span>
+                  <div className="w-3 h-3 rounded bg-red-500" />
+                  <span className="text-red-400 font-bold">{calendarTotals.lossDays} loss</span>
                 </div>
               </div>
-              <span className="text-gray-400">{calendarTotals.totalDayTrades} trades</span>
+              <span className="text-gray-400 font-semibold">{calendarTotals.totalDayTrades} trades</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ROW 3: Big Stats Row - ENHANCED with animations */}
+      {/* ROW 3: Big Stats Row - SHARP & CLEAN */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
           { label: "BALANCE", value: `$${(currentBalance / 1000).toFixed(1)}K`, color: "#FFD700", Icon: FiDollarSign, pulse: true },
@@ -3434,47 +3421,37 @@ export default function DashboardContent({ activeTab = "overview", isDark = true
           { label: "AVG WIN", value: "$187", color: "#22c55e", Icon: FiCheckCircle, pulse: false },
           { label: "AVG LOSS", value: "$89", color: "#ef4444", Icon: FiTrendingDown, pulse: false },
         ].map((stat, i) => (
-          <div key={i} className="bg-gradient-to-br from-[#0a0a0a]/80 to-[#111]/60 backdrop-blur-xl rounded-2xl border border-[#FFD700]/10 p-4 text-center relative overflow-hidden hover:border-[#FFD700]/40 transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,215,0,0.25)] hover:scale-110 cursor-pointer group">
-            {/* Animated background glow */}
+          <div key={i} className="bg-[#0a0a0a] rounded-2xl border border-[#FFD700]/20 p-4 text-center relative overflow-hidden hover:border-[#FFD700]/50 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.2)] cursor-pointer group">
+            {/* Background glow on hover */}
             <div
-              className="absolute inset-0 opacity-0 group-hover:opacity-30 transition-all duration-500"
-              style={{
-                background: `radial-gradient(circle at center, ${stat.color} 0%, transparent 60%)`
-              }}
-            />
-            {/* Animated border glow */}
-            <div
-              className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${stat.pulse ? "animate-pulse" : ""}`}
-              style={{
-                boxShadow: `inset 0 0 20px ${stat.color}30`
-              }}
+              className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+              style={{ background: `radial-gradient(circle at center, ${stat.color} 0%, transparent 70%)` }}
             />
             <div className="relative">
-              {/* Icon with glow */}
-              <div className="mb-2 transform group-hover:scale-125 transition-transform duration-300 flex justify-center">
-                <stat.Icon size={24} style={{ color: stat.color, filter: `drop-shadow(0 0 6px ${stat.color})` }} />
+              {/* Icon */}
+              <div className="mb-3 flex justify-center">
+                <stat.Icon size={22} style={{ color: stat.color }} />
               </div>
               {/* Circular progress ring */}
-              <div className="relative w-20 h-20 mx-auto mb-2">
+              <div className="relative w-20 h-20 mx-auto mb-3">
                 <svg className="w-20 h-20 transform -rotate-90">
-                  <circle cx="40" cy="40" r="34" stroke="#1a1a1a" strokeWidth="3" fill="none" />
+                  <circle cx="40" cy="40" r="34" stroke="#1a1a1a" strokeWidth="4" fill="none" />
                   <circle
                     cx="40" cy="40" r="34"
                     stroke={stat.color}
-                    strokeWidth="3"
+                    strokeWidth="4"
                     fill="none"
                     strokeDasharray="214"
                     strokeDashoffset={214 - (214 * ((i + 1) * 15) / 100)}
                     strokeLinecap="round"
-                    className="transition-all duration-1000"
-                    style={{ filter: `drop-shadow(0 0 6px ${stat.color})` }}
+                    className="transition-all duration-700"
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold transition-all duration-300 group-hover:scale-110" style={{ color: stat.color, textShadow: `0 0 10px ${stat.color}50` }}>{stat.value}</span>
+                  <span className="text-lg font-black tracking-tight" style={{ color: stat.color }}>{stat.value}</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 font-medium tracking-wider">{stat.label}</p>
+              <p className="text-[11px] text-gray-400 font-bold tracking-widest uppercase">{stat.label}</p>
             </div>
           </div>
         ))}
